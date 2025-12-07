@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import '@/i18n';
 
@@ -10,6 +10,15 @@ import Splash from "./pages/Splash";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import Services from "./pages/Services";
+import Store from "./pages/Store";
+import History from "./pages/History";
+import MissingReport from "./pages/MissingReport";
+import StrayReport from "./pages/StrayReport";
+import BookAppointment from "./pages/BookAppointment";
+import AddPet from "./pages/AddPet";
+import Adoption from "./pages/Adoption";
+import Care from "./pages/Care";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,7 +27,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
+      <Sonner position="top-center" />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
@@ -26,9 +35,15 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/services" element={<Dashboard />} />
-            <Route path="/store" element={<Dashboard />} />
-            <Route path="/history" element={<Dashboard />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/store" element={<Store />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/missing-report" element={<MissingReport />} />
+            <Route path="/stray-report" element={<StrayReport />} />
+            <Route path="/book-appointment" element={<BookAppointment />} />
+            <Route path="/add-pet" element={<AddPet />} />
+            <Route path="/adoption" element={<Adoption />} />
+            <Route path="/care" element={<Care />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

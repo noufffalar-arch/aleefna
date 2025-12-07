@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { changeLanguage } from '@/i18n';
 import { Button } from '@/components/ui/button';
-import { User, Mail, Globe, LogOut } from 'lucide-react';
+import { User, Mail, Globe, LogOut, ChevronLeft } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import i18n from '@/i18n';
 
@@ -24,37 +24,42 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="aleefna-gradient-bg px-6 pt-8 pb-6 rounded-b-3xl">
-        <h1 className="text-2xl font-bold">{t('profile.title')}</h1>
+      {/* Header */}
+      <div className="px-6 pt-8 pb-6">
+        <h1 className="text-xl font-bold text-end text-foreground">{t('profile.title')}</h1>
       </div>
 
-      <div className="px-6 mt-6 space-y-4">
+      <div className="px-6 space-y-4">
+        {/* User Info Card */}
         <div className="aleefna-card flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
-            <User className="w-8 h-8 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-bold text-lg">{profile?.full_name}</h3>
+          <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+          <div className="flex-1 text-end">
+            <h3 className="font-bold text-lg text-foreground">{profile?.full_name}</h3>
             <p className="text-muted-foreground text-sm">{t(`userTypes.${profile?.role}`)}</p>
           </div>
-        </div>
-
-        <div className="aleefna-card flex items-center gap-4">
-          <Mail className="w-5 h-5 text-muted-foreground" />
-          <span>{profile?.email}</span>
-        </div>
-
-        <div className="aleefna-card flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Globe className="w-5 h-5 text-muted-foreground" />
-            <span>{t('profile.language')}</span>
+          <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center">
+            <User className="w-7 h-7 text-primary" />
           </div>
-          <Button variant="outline" size="sm" onClick={toggleLanguage}>
+        </div>
+
+        {/* Email */}
+        <div className="aleefna-card flex items-center gap-4">
+          <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+          <span className="flex-1 text-end text-foreground" dir="ltr">{profile?.email}</span>
+          <Mail className="w-5 h-5 text-muted-foreground" />
+        </div>
+
+        {/* Language Toggle */}
+        <div className="aleefna-card flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={toggleLanguage} className="text-primary border-primary">
             {i18n.language === 'ar' ? 'English' : 'العربية'}
           </Button>
+          <span className="flex-1 text-end text-foreground">{t('profile.language')}</span>
+          <Globe className="w-5 h-5 text-muted-foreground" />
         </div>
 
-        <Button variant="destructive" className="w-full" onClick={handleLogout}>
+        {/* Logout */}
+        <Button variant="destructive" className="w-full mt-8" onClick={handleLogout}>
           <LogOut className="w-5 h-5" />
           {t('auth.logout')}
         </Button>

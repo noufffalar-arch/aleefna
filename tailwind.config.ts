@@ -61,9 +61,10 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         aleefna: {
-          green: "hsl(var(--aleefna-green))",
-          "green-light": "hsl(var(--aleefna-green-light))",
-          "green-dark": "hsl(var(--aleefna-green-dark))",
+          primary: "hsl(var(--aleefna-primary))",
+          "primary-light": "hsl(var(--aleefna-primary-light))",
+          "primary-dark": "hsl(var(--aleefna-primary-dark))",
+          splash: "hsl(var(--aleefna-splash))",
           orange: "hsl(var(--aleefna-orange))",
           "orange-light": "hsl(var(--aleefna-orange-light))",
           blue: "hsl(var(--aleefna-blue))",
@@ -83,7 +84,8 @@ export default {
         "3xl": "calc(var(--radius) + 16px)",
       },
       boxShadow: {
-        card: "var(--shadow-card)",
+        card: "0 2px 8px -2px rgba(0, 0, 0, 0.08)",
+        "card-hover": "0 8px 20px -4px rgba(0, 0, 0, 0.12)",
       },
       keyframes: {
         "accordion-down": {
