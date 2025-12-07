@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { PawPrint, Search, MapPin, Calendar, Heart, Scissors, AlertTriangle, User } from 'lucide-react';
+import { PawPrint, Search, MapPin, Calendar, Heart, Scissors, AlertTriangle, User, Eye, AlertCircle, Syringe } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
 interface Pet {
@@ -14,10 +14,11 @@ interface Pet {
 }
 
 const Dashboard = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const [pets, setPets] = useState<Pet[]>([]);
+  const isRtl = i18n.language === 'ar';
 
   useEffect(() => {
     if (!loading && !user) {
@@ -65,43 +66,85 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="px-6 pt-8 pb-4">
-        <div className="flex items-center justify-between">
+        <div className={`flex items-center justify-between ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
           <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
             <User className="w-5 h-5 text-muted-foreground" />
           </button>
-          <div className="text-end flex-1 me-4">
-            <h1 className="text-xl font-bold text-foreground">اهلاً، {firstName}</h1>
+          <div className={`flex-1 ${isRtl ? 'text-end me-4' : 'text-start ms-4'}`}>
+            <h1 className="text-xl font-bold text-foreground">{t('dashboard.greeting')}، {firstName}</h1>
             <p className="text-muted-foreground text-sm">{t('dashboard.helpMessage')}</p>
           </div>
         </div>
       </div>
 
-      {/* Pet Card */}
+      {/* Pet Cards */}
       <div className="px-6 mb-6">
-        <div 
-          className="aleefna-card-hover cursor-pointer flex items-center gap-4"
-          onClick={() => navigate(pets.length > 0 ? `/pet/${pets[0].id}` : '/add-pet')}
-        >
-          <div className="flex-1">
-            {pets.length > 0 ? (
-              <h3 className="font-bold text-lg text-foreground">{pets[0].name}</h3>
-            ) : (
+        {pets.length === 0 ? (
+          <div 
+            className="aleefna-card-hover cursor-pointer flex items-center gap-4"
+            onClick={() => navigate('/add-pet')}
+          >
+            <div className={`flex-1 ${isRtl ? 'text-end' : 'text-start'}`}>
               <p className="text-muted-foreground text-sm">{t('dashboard.addPetHint')}</p>
-            )}
-          </div>
-          <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden">
-            {pets.length > 0 && pets[0].photo_url ? (
-              <img src={pets[0].photo_url} alt={pets[0].name} className="w-full h-full object-cover" />
-            ) : (
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center">
               <PawPrint className="w-7 h-7 text-primary" />
-            )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-3">
+            {pets.map((pet) => (
+              <div 
+                key={pet.id}
+                className="aleefna-card-hover cursor-pointer"
+                onClick={() => navigate(`/pet/${pet.id}`)}
+              >
+                <div className={`flex items-center gap-4 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
+                  <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden">
+                    {pet.photo_url ? (
+                      <img src={pet.photo_url} alt={pet.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <PawPrint className="w-7 h-7 text-primary" />
+                    )}
+                  </div>
+                  <div className={`flex-1 ${isRtl ? 'text-end' : 'text-start'}`}>
+                    <h3 className="font-bold text-lg text-foreground">{pet.name}</h3>
+                    <p className="text-muted-foreground text-sm">{pet.species}</p>
+                  </div>
+                </div>
+                {/* Quick Actions */}
+                <div className={`flex gap-2 mt-3 ${isRtl ? 'justify-end' : 'justify-start'}`}>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); navigate(`/pet/${pet.id}`); }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-secondary text-primary text-xs font-medium"
+                  >
+                    <Eye className="w-3 h-3" />
+                    {t('pet.viewProfile')}
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); navigate('/missing-report'); }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-aleefna-red-light text-aleefna-red text-xs font-medium"
+                  >
+                    <AlertCircle className="w-3 h-3" />
+                    {t('services.reportMissing')}
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); navigate('/book-appointment'); }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-aleefna-blue-light text-aleefna-blue text-xs font-medium"
+                  >
+                    <Syringe className="w-3 h-3" />
+                    {t('pet.vaccinations')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Quick Services */}
       <div className="px-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className={`flex items-center justify-between mb-4 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
           <span className="text-sm text-muted-foreground">{t('common.viewAll')}</span>
           <h2 className="font-bold text-lg text-foreground">{t('dashboard.quickServices')}</h2>
         </div>
@@ -121,9 +164,9 @@ const Dashboard = () => {
       <div className="px-6 mb-6">
         <button 
           onClick={() => navigate('/stray-report')} 
-          className="w-full aleefna-card flex items-center gap-4 border-aleefna-red/20"
+          className={`w-full aleefna-card flex items-center gap-4 border-aleefna-red/20 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}
         >
-          <span className="font-semibold text-foreground flex-1 text-end">{t('services.strayReport')}</span>
+          <span className={`font-semibold text-foreground flex-1 ${isRtl ? 'text-end' : 'text-start'}`}>{t('services.strayReport')}</span>
           <div className="service-icon bg-aleefna-red-light">
             <AlertTriangle className="w-6 h-6 text-aleefna-red" />
           </div>
@@ -132,7 +175,7 @@ const Dashboard = () => {
 
       {/* Lost Map Preview */}
       <div className="px-6">
-        <h2 className="font-bold text-lg mb-4 text-end text-foreground">{t('dashboard.lostMap')}</h2>
+        <h2 className={`font-bold text-lg mb-4 text-foreground ${isRtl ? 'text-end' : 'text-start'}`}>{t('dashboard.lostMap')}</h2>
         <div 
           onClick={() => navigate('/lost-map')} 
           className="aleefna-card-hover cursor-pointer h-44 overflow-hidden relative"

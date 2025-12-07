@@ -5,15 +5,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PawPrint, Eye, EyeOff } from 'lucide-react';
+import { PawPrint, Eye, EyeOff, Globe } from 'lucide-react';
 import { toast } from 'sonner';
+import { changeLanguage } from '@/i18n';
 
 type AuthMode = 'login' | 'signup' | 'forgot' | 'reset-sent';
 
 const Auth = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { signIn, signUp, resetPassword, mockNafathLogin } = useAuth();
+  const isRtl = i18n.language === 'ar';
   
   const [mode, setMode] = useState<AuthMode>('login');
   const [loading, setLoading] = useState(false);
@@ -23,7 +25,12 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [userType, setUserType] = useState('owner');
+
+  const toggleLanguage = () => {
+    changeLanguage(isRtl ? 'en' : 'ar');
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,8 +51,12 @@ const Auth = () => {
       toast.error(t('auth.passwordMismatch'));
       return;
     }
+    if (!mobileNumber) {
+      toast.error(t('auth.mobileRequired'));
+      return;
+    }
     setLoading(true);
-    const { error } = await signUp(email, password, fullName, userType);
+    const { error } = await signUp(email, password, fullName, userType, mobileNumber);
     setLoading(false);
     if (error) {
       toast.error(t('auth.signupError'), { description: error.message });
@@ -81,6 +92,17 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background px-6 py-8">
+      {/* Language Toggle */}
+      <div className={`flex ${isRtl ? 'justify-start' : 'justify-end'}`}>
+        <button 
+          onClick={toggleLanguage}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Globe className="w-4 h-4" />
+          <span>{isRtl ? 'English' : 'العربية'}</span>
+        </button>
+      </div>
+
       {/* Logo */}
       <div className="flex flex-col items-center mb-8 pt-4">
         <div className="paw-logo mb-4">
@@ -92,7 +114,7 @@ const Auth = () => {
       <h1 className="text-2xl font-bold text-primary text-center mb-8">
         {mode === 'login' && t('auth.login')}
         {mode === 'signup' && t('auth.signup')}
-        {mode === 'forgot' && 'استعادة كلمة المرور'}
+        {mode === 'forgot' && t('auth.forgotPassword')}
         {mode === 'reset-sent' && t('auth.resetLinkSent')}
       </h1>
 
@@ -101,33 +123,33 @@ const Auth = () => {
         {mode === 'login' && (
           <form onSubmit={handleLogin} className="space-y-5 animate-fade-in">
             <div>
-              <label className="aleefna-label">{t('auth.email')}</label>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.email')}</label>
               <Input 
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 placeholder="Aleefna@gmail.com" 
-                className="text-start"
+                className={isRtl ? 'text-end' : 'text-start'}
                 dir="ltr"
                 required 
               />
             </div>
             <div>
-              <label className="aleefna-label">{t('auth.password')}</label>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.password')}</label>
               <div className="relative">
                 <Input 
                   type={showPassword ? "text" : "password"} 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   placeholder="••••••••" 
-                  className="text-start pe-12"
+                  className={`${isRtl ? 'text-end pe-12' : 'text-start pe-12'}`}
                   dir="ltr"
                   required 
                 />
                 <button 
                   type="button" 
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute end-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  className={`absolute top-1/2 -translate-y-1/2 text-muted-foreground ${isRtl ? 'start-4' : 'end-4'}`}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -150,8 +172,8 @@ const Auth = () => {
               {t('auth.loginWithNafath')}
             </Button>
             
-            <p className="text-center text-xs text-muted-foreground mt-4">
-              بالاستمرار، فإنك توافق على الشروط والأحكام وسياسة الخصوصية
+            <p className={`text-center text-xs text-muted-foreground mt-4 ${isRtl ? 'text-end' : 'text-start'}`}>
+              {t('auth.termsAgreement')}
             </p>
           </form>
         )}
@@ -159,82 +181,94 @@ const Auth = () => {
         {mode === 'signup' && (
           <form onSubmit={handleSignup} className="space-y-4 animate-fade-in">
             <div>
-              <label className="aleefna-label">{t('auth.fullName')}</label>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.fullName')}</label>
               <Input 
                 type="text" 
                 value={fullName} 
                 onChange={(e) => setFullName(e.target.value)} 
-                placeholder="Mohammed Ahmed"
-                className="text-start"
+                placeholder={isRtl ? "محمد أحمد" : "Mohammed Ahmed"}
+                className={isRtl ? 'text-end' : 'text-start'}
                 dir="auto"
                 required 
               />
             </div>
             <div>
-              <label className="aleefna-label">{t('auth.email')}</label>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.email')}</label>
               <Input 
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 placeholder="Aleefna@gmail.com"
-                className="text-start"
+                className={isRtl ? 'text-end' : 'text-start'}
                 dir="ltr"
                 required 
               />
             </div>
             <div>
-              <label className="aleefna-label">{t('auth.password')}</label>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.mobile')}</label>
+              <Input 
+                type="tel" 
+                value={mobileNumber} 
+                onChange={(e) => setMobileNumber(e.target.value)} 
+                placeholder="05xxxxxxxx"
+                className={isRtl ? 'text-end' : 'text-start'}
+                dir="ltr"
+                required 
+              />
+            </div>
+            <div>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.password')}</label>
               <div className="relative">
                 <Input 
                   type={showPassword ? "text" : "password"} 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   placeholder="••••••••"
-                  className="text-start pe-12"
+                  className={`${isRtl ? 'text-end pe-12' : 'text-start pe-12'}`}
                   dir="ltr"
                   required 
                 />
                 <button 
                   type="button" 
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute end-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  className={`absolute top-1/2 -translate-y-1/2 text-muted-foreground ${isRtl ? 'start-4' : 'end-4'}`}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="aleefna-label">{t('auth.confirmPassword')}</label>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.confirmPassword')}</label>
               <div className="relative">
                 <Input 
                   type={showConfirmPassword ? "text" : "password"} 
                   value={confirmPassword} 
                   onChange={(e) => setConfirmPassword(e.target.value)} 
                   placeholder="••••••••"
-                  className="text-start pe-12"
+                  className={`${isRtl ? 'text-end pe-12' : 'text-start pe-12'}`}
                   dir="ltr"
                   required 
                 />
                 <button 
                   type="button" 
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute end-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  className={`absolute top-1/2 -translate-y-1/2 text-muted-foreground ${isRtl ? 'start-4' : 'end-4'}`}
                 >
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="aleefna-label">{t('auth.userType')}</label>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.userType')}</label>
               <Select value={userType} onValueChange={setUserType}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="اختيار نوع المستخدم" />
+                <SelectTrigger className={`w-full ${isRtl ? 'text-end' : 'text-start'}`}>
+                  <SelectValue placeholder={t('auth.selectUserType')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="owner">{t('userTypes.owner')}</SelectItem>
+                  <SelectItem value="shelter">{t('userTypes.shelter')}</SelectItem>
                   <SelectItem value="clinic">{t('userTypes.clinic')}</SelectItem>
                   <SelectItem value="store">{t('userTypes.store')}</SelectItem>
-                  <SelectItem value="shelter">{t('userTypes.shelter')}</SelectItem>
                   <SelectItem value="government">{t('userTypes.government')}</SelectItem>
                 </SelectContent>
               </Select>
@@ -244,29 +278,29 @@ const Auth = () => {
               {loading ? t('common.loading') : t('auth.signup')}
             </Button>
             
-            <p className="text-center text-sm text-muted-foreground">
+            <p className={`text-center text-sm text-muted-foreground ${isRtl ? '' : ''}`}>
               {t('auth.haveAccount')} <button type="button" onClick={() => setMode('login')} className="text-primary font-semibold">{t('auth.login')}</button>
             </p>
             
-            <p className="text-center text-xs text-muted-foreground">
-              بالاستمرار، فإنك توافق على الشروط والأحكام وسياسة الخصوصية
+            <p className={`text-center text-xs text-muted-foreground ${isRtl ? 'text-end' : 'text-start'}`}>
+              {t('auth.termsAgreement')}
             </p>
           </form>
         )}
 
         {mode === 'forgot' && (
           <form onSubmit={handleForgotPassword} className="space-y-5 animate-fade-in">
-            <p className="text-muted-foreground text-sm text-center mb-4">
-              من فضلك أدخل بريدك الإلكتروني لإرسال رابط إعادة التعيين
+            <p className={`text-muted-foreground text-sm text-center mb-4 ${isRtl ? 'text-end' : 'text-start'}`}>
+              {t('auth.forgotPasswordHint')}
             </p>
             <div>
-              <label className="aleefna-label">{t('auth.email')}</label>
+              <label className={`aleefna-label ${isRtl ? 'text-end' : 'text-start'}`}>{t('auth.email')}</label>
               <Input 
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 placeholder="Aleefna@gmail.com"
-                className="text-start"
+                className={isRtl ? 'text-end' : 'text-start'}
                 dir="ltr"
                 required 
               />
@@ -286,8 +320,8 @@ const Auth = () => {
               <PawPrint className="w-10 h-10 text-primary" />
             </div>
             <h2 className="text-xl font-bold text-primary">{t('auth.resetLinkSent')}</h2>
-            <p className="text-muted-foreground text-sm">
-              تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني
+            <p className={`text-muted-foreground text-sm ${isRtl ? 'text-end' : 'text-start'}`}>
+              {t('auth.resetLinkMessage')}
             </p>
             <Button onClick={() => setMode('login')} className="w-full">
               {t('auth.backToLogin')}

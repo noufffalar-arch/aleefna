@@ -132,7 +132,16 @@
   }
 
   .aleefna-label {
-    @apply text-sm font-medium text-muted-foreground mb-2 block text-end;
+    @apply text-sm font-medium text-muted-foreground mb-2 block;
+  }
+
+  /* RTL text alignment helper */
+  html[dir="rtl"] .aleefna-label {
+    @apply text-end;
+  }
+
+  html[dir="ltr"] .aleefna-label {
+    @apply text-start;
   }
 
   .splash-bg {

@@ -7,8 +7,10 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import '@/i18n';
 
 import Splash from "./pages/Splash";
+import LanguageSelect from "./pages/LanguageSelect";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import ShelterDashboard from "./pages/ShelterDashboard";
 import Profile from "./pages/Profile";
 import Services from "./pages/Services";
 import Store from "./pages/Store";
@@ -32,8 +34,10 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Splash />} />
+            <Route path="/language" element={<LanguageSelect />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/shelter-dashboard" element={<ShelterDashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/services" element={<Services />} />
             <Route path="/store" element={<Store />} />
