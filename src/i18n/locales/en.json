@@ -1,0 +1,193 @@
+{
+  "app": {
+    "name": "Aleefna",
+    "tagline": "Smart platform for pet care and tracking"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Create New Account",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "userType": "User Type",
+    "forgotPassword": "Forgot Password?",
+    "clickHere": "Click here",
+    "haveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?",
+    "sendResetLink": "Send Reset Link",
+    "resetLinkSent": "Link Sent",
+    "resetLinkMessage": "Reset link sent. Please check your email to recover your password.",
+    "backToLogin": "Back to Login",
+    "loginWithNafath": "Login with Nafath",
+    "passwordMismatch": "Passwords do not match",
+    "signupSuccess": "Account created successfully",
+    "loginSuccess": "Login successful",
+    "loginError": "Login error",
+    "signupError": "Signup error"
+  },
+  "userTypes": {
+    "owner": "Pet Owner",
+    "clinic": "Veterinary Clinic",
+    "store": "Pet Store",
+    "shelter": "Animal Welfare Organization",
+    "government": "Government Entity"
+  },
+  "dashboard": {
+    "greeting": "Hello",
+    "helpMessage": "How can we help you care for your pet today?",
+    "addPetHint": "Click here to add a new pet",
+    "quickServices": "Quick Services",
+    "lostMap": "Lost Pets Map"
+  },
+  "services": {
+    "reportMissing": "Report Missing",
+    "adoption": "Adoption",
+    "bookAppointment": "Book Appointment",
+    "care": "Care",
+    "strayReport": "Stray Animal Report"
+  },
+  "pet": {
+    "name": "Pet Name",
+    "species": "Species",
+    "breed": "Breed",
+    "gender": "Gender",
+    "age": "Age",
+    "color": "Color",
+    "microchipId": "Microchip/QR ID",
+    "vaccinations": "Vaccinations",
+    "medicalNotes": "Medical Notes",
+    "photo": "Pet Photo",
+    "addPet": "Add Pet",
+    "editPet": "Edit Pet",
+    "viewProfile": "View Profile",
+    "noPets": "No pets registered",
+    "male": "Male",
+    "female": "Female",
+    "cat": "Cat",
+    "dog": "Dog",
+    "bird": "Bird",
+    "other": "Other"
+  },
+  "missing": {
+    "reportTitle": "Report Missing Pet",
+    "selectPet": "Select Pet",
+    "lastSeenDate": "Last Seen Date & Time",
+    "lastSeenLocation": "Last Seen Location",
+    "description": "Additional Description",
+    "contactPhone": "Contact Phone",
+    "submitReport": "Submit Report",
+    "reportSuccess": "Report submitted successfully"
+  },
+  "stray": {
+    "reportTitle": "Stray Animal Report",
+    "animalType": "Animal Type",
+    "dangerLevel": "Danger Level",
+    "location": "Location",
+    "photo": "Photo (Optional)",
+    "description": "Description",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "submitReport": "Submit Report"
+  },
+  "adoption": {
+    "title": "Adoption",
+    "availableAnimals": "Available for Adoption",
+    "requestAdoption": "Request Adoption",
+    "addForAdoption": "Add Animal for Adoption",
+    "adoptionRequests": "Adoption Requests",
+    "noAnimals": "No animals available for adoption",
+    "healthStatus": "Health Status",
+    "vaccinated": "Vaccinated",
+    "neutered": "Neutered"
+  },
+  "appointment": {
+    "title": "Book Appointment",
+    "selectPet": "Select Pet",
+    "selectClinic": "Select Clinic",
+    "serviceType": "Service Type",
+    "servicePrice": "Service Price",
+    "doctorName": "Doctor Name",
+    "dateTime": "Date & Time",
+    "book": "Book Appointment",
+    "bookSuccess": "Appointment booked successfully",
+    "vaccination": "Vaccination",
+    "checkup": "Check-up",
+    "surgery": "Surgery",
+    "emergency": "Emergency",
+    "grooming": "Grooming"
+  },
+  "care": {
+    "title": "Care & Grooming",
+    "tips": "Care Tips",
+    "services": "Grooming Services"
+  },
+  "shelter": {
+    "dashboard": "Shelter Dashboard",
+    "adoptableAnimals": "Adoptable Animals",
+    "adoptionRequests": "Adoption Requests",
+    "clinicSupport": "Medical Support",
+    "addAnimal": "Add Animal for Adoption",
+    "estimatedCost": "Estimated Cost",
+    "notes": "Notes",
+    "requestSupport": "Request Medical Support"
+  },
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "store": "Store",
+    "history": "History",
+    "profile": "Profile"
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "language": "Language",
+    "arabic": "Arabic",
+    "english": "English"
+  },
+  "store": {
+    "title": "Store",
+    "comingSoon": "Stores will be added soon"
+  },
+  "history": {
+    "title": "History",
+    "appointments": "Appointments",
+    "missingReports": "Missing Reports",
+    "strayReports": "Stray Animal Reports",
+    "noHistory": "No history"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "active": "Active",
+    "found": "Found",
+    "new": "New",
+    "inProgress": "In Progress",
+    "closed": "Closed",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "inReview": "In Review"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Operation successful",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "viewAll": "View All",
+    "noData": "No data"
+  }
+}
