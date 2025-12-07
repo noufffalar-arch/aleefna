@@ -6,107 +6,97 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 220 20% 15%;
+    --background: 0 0% 97%;
+    --foreground: 150 10% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 150 10% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover-foreground: 150 10% 20%;
 
-    --primary: 142 70% 45%;
+    --primary: 120 30% 48%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 142 30% 95%;
-    --secondary-foreground: 142 70% 30%;
+    --secondary: 120 25% 94%;
+    --secondary-foreground: 120 30% 35%;
 
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 35 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 120 45% 85%;
+    --accent-foreground: 120 30% 35%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 90%;
-    --input: 220 15% 90%;
-    --ring: 142 70% 45%;
+    --border: 120 20% 85%;
+    --input: 120 20% 85%;
+    --ring: 120 30% 48%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    /* Custom Aleefna tokens */
-    --aleefna-green: 142 70% 45%;
-    --aleefna-green-light: 142 60% 92%;
-    --aleefna-green-dark: 142 70% 35%;
-    --aleefna-orange: 35 100% 50%;
-    --aleefna-orange-light: 35 100% 95%;
-    --aleefna-blue: 210 100% 50%;
-    --aleefna-blue-light: 210 100% 95%;
-    --aleefna-purple: 270 70% 55%;
-    --aleefna-purple-light: 270 70% 95%;
-    --aleefna-red: 0 84% 60%;
-    --aleefna-red-light: 0 84% 95%;
+    /* Aleefna Design System - Based on Figma */
+    --aleefna-primary: 120 30% 48%;
+    --aleefna-primary-light: 120 45% 85%;
+    --aleefna-primary-dark: 120 30% 38%;
+    --aleefna-splash: 120 35% 75%;
+    --aleefna-orange: 30 90% 55%;
+    --aleefna-orange-light: 30 90% 95%;
+    --aleefna-blue: 210 80% 55%;
+    --aleefna-blue-light: 210 80% 95%;
+    --aleefna-purple: 280 60% 55%;
+    --aleefna-purple-light: 280 60% 95%;
+    --aleefna-red: 0 72% 51%;
+    --aleefna-red-light: 0 72% 95%;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 220 20% 15%;
-    --sidebar-primary: 142 70% 45%;
+    --sidebar-foreground: 150 10% 20%;
+    --sidebar-primary: 120 30% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 142 30% 95%;
-    --sidebar-accent-foreground: 142 70% 30%;
-    --sidebar-border: 220 15% 90%;
-    --sidebar-ring: 142 70% 45%;
-
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(142, 70%, 45%), hsl(142, 70%, 55%));
-    --gradient-hero: linear-gradient(180deg, hsl(142, 60%, 92%) 0%, hsl(0, 0%, 98%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(142, 30%, 98%) 100%);
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220 20% 15% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220 20% 15% / 0.1), 0 2px 4px -2px hsl(220 20% 15% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(220 20% 15% / 0.1), 0 4px 6px -4px hsl(220 20% 15% / 0.1);
-    --shadow-card: 0 4px 20px -4px hsl(142 70% 45% / 0.15);
+    --sidebar-accent: 120 25% 94%;
+    --sidebar-accent-foreground: 120 30% 35%;
+    --sidebar-border: 120 20% 85%;
+    --sidebar-ring: 120 30% 48%;
   }
 
   .dark {
-    --background: 220 20% 10%;
+    --background: 150 10% 10%;
     --foreground: 0 0% 98%;
 
-    --card: 220 20% 13%;
+    --card: 150 10% 13%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 220 20% 13%;
+    --popover: 150 10% 13%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 142 70% 50%;
+    --primary: 120 35% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 18%;
+    --secondary: 150 10% 18%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 150 10% 18%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 35 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 150 10% 18%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 142 70% 50%;
+    --border: 150 10% 20%;
+    --input: 150 10% 20%;
+    --ring: 120 35% 55%;
 
-    --sidebar-background: 220 20% 10%;
+    --sidebar-background: 150 10% 10%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 70% 50%;
+    --sidebar-primary: 120 35% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
+    --sidebar-accent: 150 10% 18%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 220 20% 20%;
-    --sidebar-ring: 142 70% 50%;
+    --sidebar-border: 150 10% 20%;
+    --sidebar-ring: 120 35% 55%;
   }
 }
 
@@ -116,7 +106,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-cairo;
+    @apply bg-background text-foreground font-cairo antialiased;
   }
 
   html[dir="rtl"] {
@@ -130,23 +120,23 @@
 
 @layer components {
   .aleefna-card {
-    @apply bg-card rounded-2xl p-4 shadow-md border border-border/50;
+    @apply bg-card rounded-2xl p-4 shadow-sm border border-border/30;
   }
 
   .aleefna-card-hover {
-    @apply aleefna-card transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
-  }
-
-  .aleefna-btn-primary {
-    @apply bg-primary text-primary-foreground rounded-xl px-6 py-3 font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98];
+    @apply aleefna-card transition-all duration-300 hover:shadow-md hover:-translate-y-0.5;
   }
 
   .aleefna-input {
-    @apply w-full rounded-xl border border-input bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all;
+    @apply w-full rounded-xl border-2 border-input bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-0 focus:outline-none transition-colors;
   }
 
-  .aleefna-gradient-bg {
-    background: var(--gradient-hero);
+  .aleefna-label {
+    @apply text-sm font-medium text-muted-foreground mb-2 block text-end;
+  }
+
+  .splash-bg {
+    background: hsl(var(--aleefna-splash));
   }
 
   .service-icon {
@@ -154,19 +144,33 @@
   }
 
   .bottom-nav-item {
-    @apply flex flex-col items-center gap-1 p-2 rounded-xl transition-all;
+    @apply flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all;
   }
 
   .bottom-nav-item.active {
-    @apply text-primary bg-secondary;
+    @apply text-primary;
   }
 
   .bottom-nav-item:not(.active) {
     @apply text-muted-foreground hover:text-foreground;
   }
+
+  .paw-logo {
+    @apply w-20 h-20 bg-card rounded-[2rem] flex items-center justify-center shadow-lg;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  }
+
+  .paw-logo-large {
+    @apply w-32 h-32 bg-card rounded-[3rem] flex items-center justify-center shadow-xl;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  }
 }
 
 @layer utilities {
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
   }
@@ -181,6 +185,10 @@
 
   .animate-bounce-soft {
     animation: bounceSoft 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulseSoft 2s ease-in-out infinite;
   }
 
   @keyframes fadeIn {
@@ -200,6 +208,11 @@
 
   @keyframes bounceSoft {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes pulseSoft {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
   }
 }
