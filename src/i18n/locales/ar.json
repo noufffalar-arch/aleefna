@@ -1,0 +1,193 @@
+{
+  "app": {
+    "name": "أليفنا",
+    "tagline": "منصة ذكية لرعاية وتتبع الحيوانات الأليفة"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "signup": "إنشاء حساب جديد",
+    "logout": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "fullName": "الاسم الكامل",
+    "userType": "نوع المستخدم",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "clickHere": "اضغط هنا",
+    "haveAccount": "لديك حساب مسجّل؟",
+    "noAccount": "ليس لديك حساب؟",
+    "sendResetLink": "إرسال الرابط",
+    "resetLinkSent": "تم إرسال الرابط",
+    "resetLinkMessage": "تم إرسال الرابط. من فضلك تفقد بريدك الإلكتروني لاستعادة كلمة المرور.",
+    "backToLogin": "رجوع لتسجيل الدخول",
+    "loginWithNafath": "تسجيل الدخول عبر نفاذ",
+    "passwordMismatch": "كلمات المرور غير متطابقة",
+    "signupSuccess": "تم إنشاء الحساب بنجاح",
+    "loginSuccess": "تم تسجيل الدخول بنجاح",
+    "loginError": "خطأ في تسجيل الدخول",
+    "signupError": "خطأ في إنشاء الحساب"
+  },
+  "userTypes": {
+    "owner": "مالك حيوان",
+    "clinic": "عيادة بيطرية",
+    "store": "متجر حيوانات",
+    "shelter": "جمعية رعاية حيوان",
+    "government": "جهة حكومية"
+  },
+  "dashboard": {
+    "greeting": "أهلاً",
+    "helpMessage": "نساعدك اليوم في رعاية أليفك؟",
+    "addPetHint": "لإضافة حيوان أليف جديد اضغط هنا",
+    "quickServices": "خدمات سريعة",
+    "lostMap": "خريطة المفقودات"
+  },
+  "services": {
+    "reportMissing": "بلاغ فقدان",
+    "adoption": "التبني",
+    "bookAppointment": "حجز موعد",
+    "care": "العناية",
+    "strayReport": "بلاغ حيوان ضال"
+  },
+  "pet": {
+    "name": "اسم الحيوان",
+    "species": "النوع",
+    "breed": "السلالة",
+    "gender": "الجنس",
+    "age": "العمر",
+    "color": "اللون",
+    "microchipId": "رقم الشريحة/QR",
+    "vaccinations": "التطعيمات",
+    "medicalNotes": "ملاحظات طبية",
+    "photo": "صورة الحيوان",
+    "addPet": "إضافة حيوان أليف",
+    "editPet": "تعديل بيانات الحيوان",
+    "viewProfile": "عرض الملف",
+    "noPets": "لا توجد حيوانات مسجلة",
+    "male": "ذكر",
+    "female": "أنثى",
+    "cat": "قط",
+    "dog": "كلب",
+    "bird": "طائر",
+    "other": "آخر"
+  },
+  "missing": {
+    "reportTitle": "بلاغ فقدان حيوان",
+    "selectPet": "اختر الحيوان",
+    "lastSeenDate": "تاريخ ووقت آخر مشاهدة",
+    "lastSeenLocation": "مكان آخر مشاهدة",
+    "description": "وصف إضافي",
+    "contactPhone": "رقم التواصل",
+    "submitReport": "إرسال البلاغ",
+    "reportSuccess": "تم إرسال البلاغ بنجاح"
+  },
+  "stray": {
+    "reportTitle": "بلاغ حيوان ضال",
+    "animalType": "نوع الحيوان",
+    "dangerLevel": "مستوى الخطورة",
+    "location": "الموقع",
+    "photo": "صورة (اختياري)",
+    "description": "الوصف",
+    "low": "منخفض",
+    "medium": "متوسط",
+    "high": "عالي",
+    "submitReport": "إرسال البلاغ"
+  },
+  "adoption": {
+    "title": "التبني",
+    "availableAnimals": "حيوانات متاحة للتبني",
+    "requestAdoption": "طلب تبنّي",
+    "addForAdoption": "إضافة حيوان للتبني",
+    "adoptionRequests": "طلبات التبني",
+    "noAnimals": "لا توجد حيوانات متاحة للتبني حالياً",
+    "healthStatus": "الحالة الصحية",
+    "vaccinated": "مطعّم",
+    "neutered": "معقّم"
+  },
+  "appointment": {
+    "title": "حجز موعد",
+    "selectPet": "اختر الحيوان",
+    "selectClinic": "اختر العيادة",
+    "serviceType": "نوع الخدمة",
+    "servicePrice": "سعر الخدمة",
+    "doctorName": "اسم الطبيب",
+    "dateTime": "التاريخ والوقت",
+    "book": "حجز الموعد",
+    "bookSuccess": "تم حجز الموعد بنجاح",
+    "vaccination": "تطعيم",
+    "checkup": "فحص عام",
+    "surgery": "جراحة",
+    "emergency": "طوارئ",
+    "grooming": "تجميل"
+  },
+  "care": {
+    "title": "العناية والتجميل",
+    "tips": "نصائح العناية",
+    "services": "خدمات التجميل"
+  },
+  "shelter": {
+    "dashboard": "لوحة تحكم الملجأ",
+    "adoptableAnimals": "الحيوانات المتاحة للتبني",
+    "adoptionRequests": "طلبات التبني",
+    "clinicSupport": "الدعم الطبي",
+    "addAnimal": "إضافة حيوان للتبني",
+    "estimatedCost": "التكلفة التقديرية",
+    "notes": "ملاحظات",
+    "requestSupport": "طلب دعم طبي"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "services": "الخدمات",
+    "store": "المتجر",
+    "history": "السجل",
+    "profile": "الحساب"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "language": "اللغة",
+    "arabic": "العربية",
+    "english": "English"
+  },
+  "store": {
+    "title": "المتجر",
+    "comingSoon": "سيتم إضافة المتاجر لاحقًا"
+  },
+  "history": {
+    "title": "السجل",
+    "appointments": "المواعيد",
+    "missingReports": "بلاغات الفقدان",
+    "strayReports": "بلاغات الحيوانات الضالة",
+    "noHistory": "لا يوجد سجل"
+  },
+  "status": {
+    "pending": "قيد الانتظار",
+    "confirmed": "مؤكد",
+    "completed": "مكتمل",
+    "cancelled": "ملغي",
+    "active": "نشط",
+    "found": "تم العثور عليه",
+    "new": "جديد",
+    "inProgress": "قيد التنفيذ",
+    "closed": "مغلق",
+    "approved": "موافق عليه",
+    "rejected": "مرفوض",
+    "inReview": "قيد المراجعة"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "add": "إضافة",
+    "search": "بحث",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "تمت العملية بنجاح",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "submit": "إرسال",
+    "viewAll": "عرض الكل",
+    "noData": "لا توجد بيانات"
+  }
+}
