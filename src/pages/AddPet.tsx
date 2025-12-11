@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowRight, PawPrint } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Validation schema
+const petSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(100, 'Name too long'),
+  species: z.enum(['cat', 'dog', 'bird', 'other'], { errorMap: () => ({ message: 'Please select a species' }) }),
+  breed: z.string().trim().max(100, 'Breed too long').optional().or(z.literal('')),
+  gender: z.enum(['male', 'female']).optional().or(z.literal('')),
+  age: z.string().trim().max(50, 'Age too long').optional().or(z.literal('')),
+  color: z.string().trim().max(100, 'Color too long').optional().or(z.literal('')),
+  microchipId: z.string().trim().max(100, 'Microchip ID too long').optional().or(z.literal('')),
+  medicalNotes: z.string().trim().max(2000, 'Medical notes too long').optional().or(z.literal(''))
+});
 
 const AddPet = () => {
   const { t } = useTranslation();
@@ -29,10 +42,25 @@ const AddPet = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !species) {
-      toast.error('الرجاء تعبئة الاسم والنوع');
+    
+    // Validate input
+    const validation = petSchema.safeParse({
+      name,
+      species: species || undefined,
+      breed,
+      gender: gender || undefined,
+      age,
+      color,
+      microchipId,
+      medicalNotes
+    });
+    
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
+    
     setLoading(true);
     
     const { error } = await supabase.from('pets').insert({
