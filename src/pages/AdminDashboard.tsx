@@ -5,35 +5,29 @@ import { supabase } from '@/integrations/supabase/client';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useRTL } from '@/hooks/useRTL';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ArrowLeft, ArrowRight, Users, Shield, Edit2, Check, X } from 'lucide-react';
-import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2 } from 'lucide-react';
+import AdminUsersTab from '@/components/admin/AdminUsersTab';
+import AdminPetsTab from '@/components/admin/AdminPetsTab';
+import AdminSheltersTab from '@/components/admin/AdminSheltersTab';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
+type AppRole = Database['public']['Enums']['app_role'];
 
 interface UserProfile {
   id: string;
   user_id: string;
   full_name: string;
   email: string | null;
+  phone: string | null;
   role: UserRole;
   created_at: string;
+}
+
+interface UserRoleEntry {
+  user_id: string;
+  role: AppRole;
 }
 
 const AdminDashboard = () => {
@@ -43,11 +37,8 @@ const AdminDashboard = () => {
   const { isRtl } = useRTL();
   
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRoleEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterRole, setFilterRole] = useState<string>('all');
-  const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editingRole, setEditingRole] = useState<UserRole>('owner');
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -55,82 +46,33 @@ const AdminDashboard = () => {
     }
   }, [isAdmin, adminLoading, navigate]);
 
-  const fetchUsers = async () => {
+  const fetchData = async () => {
     if (!isAdmin) return;
     
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const [usersResponse, rolesResponse] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('user_roles')
+        .select('user_id, role')
+    ]);
 
-    if (error) {
-      console.error('Error fetching users:', error);
-    } else {
-      setUsers(data || []);
-      setFilteredUsers(data || []);
+    if (!usersResponse.error) {
+      setUsers(usersResponse.data || []);
+    }
+    if (!rolesResponse.error) {
+      setUserRoles(rolesResponse.data || []);
     }
     setLoading(false);
   };
 
   useEffect(() => {
     if (isAdmin) {
-      fetchUsers();
+      fetchData();
     }
   }, [isAdmin]);
-
-  useEffect(() => {
-    if (filterRole === 'all') {
-      setFilteredUsers(users);
-    } else {
-      setFilteredUsers(users.filter(user => user.role === filterRole));
-    }
-  }, [filterRole, users]);
-
-  const getRoleLabel = (role: string) => {
-    const roleLabels: Record<string, string> = {
-      owner: t('admin.roleOwner'),
-      shelter: t('admin.roleShelter'),
-      clinic: t('admin.roleClinic'),
-      store: t('admin.roleStore'),
-      government: t('admin.roleGovernment'),
-      admin: t('admin.roleAdmin'),
-    };
-    return roleLabels[role] || role;
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(isRtl ? 'ar-SA' : 'en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const handleEditRole = (user: UserProfile) => {
-    setEditingUserId(user.id);
-    setEditingRole(user.role);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingUserId(null);
-    setEditingRole('owner');
-  };
-
-  const handleSaveRole = async (userId: string) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role: editingRole })
-      .eq('id', userId);
-
-    if (error) {
-      console.error('Error updating role:', error);
-      toast.error(t('common.error'));
-    } else {
-      toast.success(t('admin.roleUpdated'));
-      setEditingUserId(null);
-      fetchUsers();
-    }
-  };
 
   if (adminLoading || loading) {
     return (
@@ -145,7 +87,6 @@ const AdminDashboard = () => {
   }
 
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
-  const roles: UserRole[] = ['owner', 'shelter', 'clinic', 'store', 'government', 'admin'];
 
   return (
     <div className="min-h-screen bg-background" dir={isRtl ? 'rtl' : 'ltr'}>
@@ -167,127 +108,40 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Stats Card */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="h-5 w-5 text-primary" />
-              {t('admin.totalUsers')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-primary">{users.length}</p>
-          </CardContent>
-        </Card>
+      <div className="p-4">
+        <Tabs defaultValue="users" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('admin.usersTab')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="pets" className="flex items-center gap-2">
+              <PawPrint className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('admin.petsTab')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="shelters" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('admin.sheltersTab')}</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Filter */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium">{t('admin.filterByRole')}:</span>
-          <Select value={filterRole} onValueChange={setFilterRole}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('admin.allRoles')}</SelectItem>
-              <SelectItem value="owner">{t('admin.roleOwner')}</SelectItem>
-              <SelectItem value="shelter">{t('admin.roleShelter')}</SelectItem>
-              <SelectItem value="clinic">{t('admin.roleClinic')}</SelectItem>
-              <SelectItem value="store">{t('admin.roleStore')}</SelectItem>
-              <SelectItem value="government">{t('admin.roleGovernment')}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          <TabsContent value="users">
+            <AdminUsersTab 
+              users={users} 
+              userRoles={userRoles}
+              isRtl={isRtl} 
+              onRefresh={fetchData} 
+            />
+          </TabsContent>
 
-        {/* Users Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.usersList')}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('admin.name')}</TableHead>
-                    <TableHead>{t('admin.email')}</TableHead>
-                    <TableHead>{t('admin.userType')}</TableHead>
-                    <TableHead>{t('admin.registrationDate')}</TableHead>
-                    <TableHead>{t('admin.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                        {t('admin.noUsers')}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.full_name || '-'}</TableCell>
-                        <TableCell>{user.email || '-'}</TableCell>
-                        <TableCell>
-                          {editingUserId === user.id ? (
-                            <Select value={editingRole} onValueChange={(value) => setEditingRole(value as UserRole)}>
-                              <SelectTrigger className="w-40">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {roles.map((role) => (
-                                  <SelectItem key={role} value={role}>
-                                    {getRoleLabel(role)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                              {getRoleLabel(user.role)}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>{formatDate(user.created_at)}</TableCell>
-                        <TableCell>
-                          {editingUserId === user.id ? (
-                            <div className="flex gap-2">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                onClick={() => handleSaveRole(user.id)}
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={handleCancelEdit}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              onClick={() => handleEditRole(user)}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+          <TabsContent value="pets">
+            <AdminPetsTab isRtl={isRtl} />
+          </TabsContent>
+
+          <TabsContent value="shelters">
+            <AdminSheltersTab users={users} isRtl={isRtl} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
