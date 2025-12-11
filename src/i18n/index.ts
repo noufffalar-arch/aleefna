@@ -22,12 +22,17 @@ i18n
 export const changeLanguage = (lang: 'ar' | 'en') => {
   i18n.changeLanguage(lang);
   localStorage.setItem('aleefna-language', lang);
-  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.dir = dir;
   document.documentElement.lang = lang;
+  // Force re-render for RTL changes
+  document.body.style.direction = dir;
 };
 
 // Set initial direction
-document.documentElement.dir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
+const initialDir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
+document.documentElement.dir = initialDir;
 document.documentElement.lang = savedLanguage;
+document.body.style.direction = initialDir;
 
 export default i18n;

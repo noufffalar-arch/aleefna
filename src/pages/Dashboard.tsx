@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PawPrint, Search, MapPin, Calendar, Heart, Scissors, AlertTriangle, User, Eye, AlertCircle, Syringe } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import useRTL from '@/hooks/useRTL';
 
 interface Pet {
   id: string;
@@ -14,11 +15,11 @@ interface Pet {
 }
 
 const Dashboard = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
   const [pets, setPets] = useState<Pet[]>([]);
-  const isRtl = i18n.language === 'ar';
+  const { isRtl, dir } = useRTL();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -63,17 +64,17 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24" dir={dir}>
       {/* Header */}
       <div className="px-6 pt-8 pb-4">
-        <div className={`flex items-center justify-between ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
-          <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-            <User className="w-5 h-5 text-muted-foreground" />
-          </button>
-          <div className={`flex-1 ${isRtl ? 'text-end me-4' : 'text-start ms-4'}`}>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 text-start">
             <h1 className="text-xl font-bold text-foreground">{t('dashboard.greeting')}، {firstName}</h1>
             <p className="text-muted-foreground text-sm">{t('dashboard.helpMessage')}</p>
           </div>
+          <button onClick={() => navigate('/profile')} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <User className="w-5 h-5 text-muted-foreground" />
+          </button>
         </div>
       </div>
 
@@ -84,11 +85,11 @@ const Dashboard = () => {
             className="aleefna-card-hover cursor-pointer flex items-center gap-4"
             onClick={() => navigate('/add-pet')}
           >
-            <div className={`flex-1 ${isRtl ? 'text-end' : 'text-start'}`}>
-              <p className="text-muted-foreground text-sm">{t('dashboard.addPetHint')}</p>
-            </div>
             <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center">
               <PawPrint className="w-7 h-7 text-primary" />
+            </div>
+            <div className="flex-1 text-start">
+              <p className="text-muted-foreground text-sm">{t('dashboard.addPetHint')}</p>
             </div>
           </div>
         ) : (
@@ -99,7 +100,7 @@ const Dashboard = () => {
                 className="aleefna-card-hover cursor-pointer"
                 onClick={() => navigate(`/pet/${pet.id}`)}
               >
-                <div className={`flex items-center gap-4 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
+                <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden">
                     {pet.photo_url ? (
                       <img src={pet.photo_url} alt={pet.name} className="w-full h-full object-cover" />
@@ -107,13 +108,13 @@ const Dashboard = () => {
                       <PawPrint className="w-7 h-7 text-primary" />
                     )}
                   </div>
-                  <div className={`flex-1 ${isRtl ? 'text-end' : 'text-start'}`}>
+                  <div className="flex-1 text-start">
                     <h3 className="font-bold text-lg text-foreground">{pet.name}</h3>
                     <p className="text-muted-foreground text-sm">{pet.species}</p>
                   </div>
                 </div>
                 {/* Quick Actions */}
-                <div className={`flex gap-2 mt-3 ${isRtl ? 'justify-end' : 'justify-start'}`}>
+                <div className="flex flex-wrap gap-2 mt-3">
                   <button 
                     onClick={(e) => { e.stopPropagation(); navigate(`/pet/${pet.id}`); }}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-secondary text-primary text-xs font-medium"
@@ -144,9 +145,9 @@ const Dashboard = () => {
 
       {/* Quick Services */}
       <div className="px-6 mb-6">
-        <div className={`flex items-center justify-between mb-4 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
-          <span className="text-sm text-muted-foreground">{t('common.viewAll')}</span>
+        <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-lg text-foreground">{t('dashboard.quickServices')}</h2>
+          <span className="text-sm text-muted-foreground">{t('common.viewAll')}</span>
         </div>
         <div className="grid grid-cols-4 gap-3">
           {services.map((service) => (
@@ -164,18 +165,18 @@ const Dashboard = () => {
       <div className="px-6 mb-6">
         <button 
           onClick={() => navigate('/stray-report')} 
-          className={`w-full aleefna-card flex items-center gap-4 border-aleefna-red/20 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}
+          className="w-full aleefna-card flex items-center gap-4 border-aleefna-red/20"
         >
-          <span className={`font-semibold text-foreground flex-1 ${isRtl ? 'text-end' : 'text-start'}`}>{t('services.strayReport')}</span>
           <div className="service-icon bg-aleefna-red-light">
             <AlertTriangle className="w-6 h-6 text-aleefna-red" />
           </div>
+          <span className="font-semibold text-foreground flex-1 text-start">{t('services.strayReport')}</span>
         </button>
       </div>
 
       {/* Lost Map Preview */}
       <div className="px-6">
-        <h2 className={`font-bold text-lg mb-4 text-foreground ${isRtl ? 'text-end' : 'text-start'}`}>{t('dashboard.lostMap')}</h2>
+        <h2 className="font-bold text-lg mb-4 text-foreground text-start">{t('dashboard.lostMap')}</h2>
         <div 
           onClick={() => navigate('/lost-map')} 
           className="aleefna-card-hover cursor-pointer h-44 overflow-hidden relative"
