@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, AlertTriangle, Search, X } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import MapMarkers from '@/components/MapMarkers';
 
 // Fix default marker icon issue in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -14,31 +15,6 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-// Custom icons for different report types
-const missingPetIcon = L.divIcon({
-  className: 'custom-marker',
-  html: `<div style="background: #5B9B5B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-    </svg>
-  </div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
-});
-
-const strayAnimalIcon = L.divIcon({
-  className: 'custom-marker',
-  html: `<div style="background: #ef4444; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
-    </svg>
-  </div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
 });
 
 interface MissingReport {
@@ -185,46 +161,13 @@ const ReportsMap = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <>
-              {filteredMissingReports
-                .filter(report => report.latitude && report.longitude)
-                .map(report => (
-                  <Marker
-                    key={`missing-${report.id}`}
-                    position={[report.latitude!, report.longitude!]}
-                    icon={missingPetIcon}
-                    eventHandlers={{
-                      click: () => setSelectedReport({ type: 'missing', data: report }),
-                    }}
-                  >
-                    <Popup>
-                      <div className="text-center p-1">
-                        <p className="font-bold">{report.pets?.name || 'حيوان مفقود'}</p>
-                        <p className="text-xs text-gray-500">{report.last_seen_location}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              {filteredStrayReports
-                .filter(report => report.latitude && report.longitude)
-                .map(report => (
-                  <Marker
-                    key={`stray-${report.id}`}
-                    position={[report.latitude!, report.longitude!]}
-                    icon={strayAnimalIcon}
-                    eventHandlers={{
-                      click: () => setSelectedReport({ type: 'stray', data: report }),
-                    }}
-                  >
-                    <Popup>
-                      <div className="text-center p-1">
-                        <p className="font-bold">{getAnimalTypeLabel(report.animal_type)} ضال</p>
-                        <p className="text-xs text-gray-500">{report.location_text}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-            </>
+            <MapMarkers
+              missingReports={filteredMissingReports}
+              strayReports={filteredStrayReports}
+              onSelectMissing={(report) => setSelectedReport({ type: 'missing', data: report })}
+              onSelectStray={(report) => setSelectedReport({ type: 'stray', data: report })}
+              getAnimalTypeLabel={getAnimalTypeLabel}
+            />
           </MapContainer>
         )}
 
