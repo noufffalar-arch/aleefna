@@ -150,6 +150,26 @@
     "settingsHint": "قم بتحديث معلومات العيادة والخدمات والأسعار",
     "editClinicInfo": "تعديل بيانات العيادة"
   },
+  "clinicSettings": {
+    "title": "إعدادات العيادة",
+    "basicInfo": "المعلومات الأساسية",
+    "clinicName": "اسم العيادة",
+    "clinicNamePlaceholder": "أدخل اسم العيادة",
+    "doctorName": "اسم الطبيب",
+    "doctorNamePlaceholder": "أدخل اسم الطبيب",
+    "phone": "رقم الهاتف",
+    "location": "الموقع",
+    "city": "المدينة",
+    "cityPlaceholder": "مثال: الدمام",
+    "area": "الحي",
+    "areaPlaceholder": "مثال: الخالدية",
+    "address": "العنوان التفصيلي",
+    "addressPlaceholder": "أدخل العنوان التفصيلي",
+    "services": "الخدمات",
+    "selectServices": "اختر الخدمات التي تقدمها العيادة",
+    "prices": "الأسعار",
+    "setPrices": "حدد أسعار الخدمات المختارة"
+  },
   "shelter": {
     "dashboard": "لوحة تحكم الملجأ",
     "adoptableAnimals": "الحيوانات المتاحة للتبني",

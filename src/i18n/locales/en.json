@@ -150,6 +150,26 @@
     "settingsHint": "Update your clinic information, services, and prices",
     "editClinicInfo": "Edit Clinic Info"
   },
+  "clinicSettings": {
+    "title": "Clinic Settings",
+    "basicInfo": "Basic Information",
+    "clinicName": "Clinic Name",
+    "clinicNamePlaceholder": "Enter clinic name",
+    "doctorName": "Doctor Name",
+    "doctorNamePlaceholder": "Enter doctor name",
+    "phone": "Phone Number",
+    "location": "Location",
+    "city": "City",
+    "cityPlaceholder": "e.g. Dammam",
+    "area": "Area",
+    "areaPlaceholder": "e.g. Al Khalidiyah",
+    "address": "Detailed Address",
+    "addressPlaceholder": "Enter detailed address",
+    "services": "Services",
+    "selectServices": "Select services offered by the clinic",
+    "prices": "Prices",
+    "setPrices": "Set prices for selected services"
+  },
   "shelter": {
     "dashboard": "Shelter Dashboard",
     "adoptableAnimals": "Adoptable Animals",
