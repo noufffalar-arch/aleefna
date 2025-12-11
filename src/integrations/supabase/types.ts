@@ -172,30 +172,39 @@ export type Database = {
           area: string | null
           city: string
           created_at: string
+          doctor_name: string | null
           id: string
           name: string
           phone: string | null
+          prices: Json | null
           services: string[] | null
+          user_id: string | null
         }
         Insert: {
           address?: string | null
           area?: string | null
           city: string
           created_at?: string
+          doctor_name?: string | null
           id?: string
           name: string
           phone?: string | null
+          prices?: Json | null
           services?: string[] | null
+          user_id?: string | null
         }
         Update: {
           address?: string | null
           area?: string | null
           city?: string
           created_at?: string
+          doctor_name?: string | null
           id?: string
           name?: string
           phone?: string | null
+          prices?: Json | null
           services?: string[] | null
+          user_id?: string | null
         }
         Relationships: []
       }

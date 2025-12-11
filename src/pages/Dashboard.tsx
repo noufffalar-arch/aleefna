@@ -71,6 +71,12 @@ const Dashboard = () => {
     return null;
   }
 
+  // Check if user is a clinic - show clinic dashboard
+  if (profile?.role === 'clinic') {
+    navigate('/clinic-dashboard');
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background pb-24" dir={dir}>
       {/* Header */}
