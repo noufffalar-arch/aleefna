@@ -213,7 +213,7 @@ const ClinicSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-background flex flex-col" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="bg-primary text-primary-foreground p-4">
         <div className="flex items-center gap-3">
@@ -229,7 +229,7 @@ const ClinicSettings = () => {
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 pb-24 space-y-6">
         {/* Images */}
         <Card>
           <CardHeader>
@@ -436,8 +436,10 @@ const ClinicSettings = () => {
             </CardContent>
           </Card>
         )}
+      </div>
 
-        {/* Save Button */}
+      {/* Sticky Save Button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
         <Button
           onClick={handleSave}
           disabled={saving || !clinicData.name}
