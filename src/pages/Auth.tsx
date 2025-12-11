@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,23 @@ import { PawPrint, Eye, EyeOff, Globe, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 import { changeLanguage } from '@/i18n';
 import useRTL from '@/hooks/useRTL';
+
+// Validation schemas
+const loginSchema = z.object({
+  email: z.string().trim().email('Invalid email address').max(255, 'Email too long'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(100, 'Password too long')
+});
+
+const signupSchema = z.object({
+  email: z.string().trim().email('Invalid email address').max(255, 'Email too long'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(100, 'Password too long'),
+  fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
+  mobileNumber: z.string().regex(/^05\d{8}$/, 'Invalid Saudi mobile number (05xxxxxxxx)')
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().email('Invalid email address').max(255, 'Email too long')
+});
 
 type AuthMode = 'login' | 'signup' | 'forgot' | 'reset-sent';
 
@@ -35,8 +53,17 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+    
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(email.trim(), password);
     setLoading(false);
     if (error) {
       toast.error(t('auth.loginError'), { description: error.message });
@@ -48,16 +75,22 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = signupSchema.safeParse({ email, password, fullName, mobileNumber });
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+    
     if (password !== confirmPassword) {
       toast.error(t('auth.passwordMismatch'));
       return;
     }
-    if (!mobileNumber) {
-      toast.error(t('auth.mobileRequired'));
-      return;
-    }
+    
     setLoading(true);
-    const { error } = await signUp(email, password, fullName, userType, mobileNumber);
+    const { error } = await signUp(email.trim(), password, fullName.trim(), userType, mobileNumber);
     setLoading(false);
     if (error) {
       toast.error(t('auth.signupError'), { description: error.message });
@@ -69,8 +102,17 @@ const Auth = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = forgotPasswordSchema.safeParse({ email });
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+    
     setLoading(true);
-    const { error } = await resetPassword(email);
+    const { error } = await resetPassword(email.trim());
     setLoading(false);
     if (error) {
       toast.error(error.message);
