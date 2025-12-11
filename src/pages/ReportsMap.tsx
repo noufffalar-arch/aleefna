@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, AlertTriangle, Search, X } from 'lucide-react';
-import { MapContainer, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import MapMarkers from '@/components/MapMarkers';
 
 // Fix default marker icon issue in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -48,6 +46,30 @@ interface SelectedReport {
   data: MissingReport | StrayReport;
 }
 
+const missingPetIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `<div style="background: #5B9B5B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+  </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
+const strayAnimalIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `<div style="background: #ef4444; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+    </svg>
+  </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
 const ReportsMap = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -56,10 +78,88 @@ const ReportsMap = () => {
   const [selectedReport, setSelectedReport] = useState<SelectedReport | null>(null);
   const [filter, setFilter] = useState<'all' | 'missing' | 'stray'>('all');
   const [loading, setLoading] = useState(true);
+  const mapRef = useRef<L.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<L.Marker[]>([]);
 
   useEffect(() => {
     fetchReports();
   }, []);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = L.map(mapContainerRef.current).setView([26.4207, 50.0888], 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [loading]);
+
+  // Update markers when data or filter changes
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    const getAnimalTypeLabel = (type: string) => {
+      switch (type) {
+        case 'cat': return t('pet.cat');
+        case 'dog': return t('pet.dog');
+        default: return t('pet.other');
+      }
+    };
+
+    // Add missing pet markers
+    if (filter === 'all' || filter === 'missing') {
+      missingReports.forEach(report => {
+        if (report.latitude && report.longitude) {
+          const marker = L.marker([report.latitude, report.longitude], { icon: missingPetIcon })
+            .addTo(mapRef.current!)
+            .bindPopup(`
+              <div style="text-align: center; padding: 4px;">
+                <p style="font-weight: bold; margin: 0;">${report.pets?.name || 'حيوان مفقود'}</p>
+                <p style="font-size: 12px; color: #666; margin: 0;">${report.last_seen_location}</p>
+              </div>
+            `);
+          
+          marker.on('click', () => setSelectedReport({ type: 'missing', data: report }));
+          markersRef.current.push(marker);
+        }
+      });
+    }
+
+    // Add stray animal markers
+    if (filter === 'all' || filter === 'stray') {
+      strayReports.forEach(report => {
+        if (report.latitude && report.longitude) {
+          const marker = L.marker([report.latitude, report.longitude], { icon: strayAnimalIcon })
+            .addTo(mapRef.current!)
+            .bindPopup(`
+              <div style="text-align: center; padding: 4px;">
+                <p style="font-weight: bold; margin: 0;">${getAnimalTypeLabel(report.animal_type)} ضال</p>
+                <p style="font-size: 12px; color: #666; margin: 0;">${report.location_text}</p>
+              </div>
+            `);
+          
+          marker.on('click', () => setSelectedReport({ type: 'stray', data: report }));
+          markersRef.current.push(marker);
+        }
+      });
+    }
+  }, [missingReports, strayReports, filter, t]);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -95,14 +195,6 @@ const ReportsMap = () => {
       default: return t('pet.other');
     }
   };
-
-  const filteredMissingReports = (filter === 'all' || filter === 'missing') 
-    ? missingReports.filter(r => r.latitude && r.longitude)
-    : [];
-
-  const filteredStrayReports = (filter === 'all' || filter === 'stray')
-    ? strayReports.filter(r => r.latitude && r.longitude)
-    : [];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -151,24 +243,7 @@ const ReportsMap = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <MapContainer
-            center={[26.4207, 50.0888]}
-            zoom={12}
-            style={{ height: '100%', width: '100%', minHeight: '400px' }}
-            scrollWheelZoom={true}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <MapMarkers
-              missingReports={filteredMissingReports}
-              strayReports={filteredStrayReports}
-              onSelectMissing={(report) => setSelectedReport({ type: 'missing', data: report })}
-              onSelectStray={(report) => setSelectedReport({ type: 'stray', data: report })}
-              getAnimalTypeLabel={getAnimalTypeLabel}
-            />
-          </MapContainer>
+          <div ref={mapContainerRef} style={{ height: '100%', width: '100%', minHeight: '400px' }} />
         )}
 
         {/* Legend */}
@@ -194,7 +269,7 @@ const ReportsMap = () => {
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
                 {selectedReport.type === 'missing' ? (
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-content">
                     <Search className="w-4 h-4 text-primary" />
                   </div>
                 ) : (
