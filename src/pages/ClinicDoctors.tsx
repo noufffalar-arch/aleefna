@@ -96,7 +96,14 @@ const ClinicDoctors = () => {
   };
 
   const handleAddDoctor = async () => {
-    if (!newDoctor.name || !clinicId) return;
+    if (!newDoctor.name) {
+      toast.error(t('doctors.doctorNameRequired'));
+      return;
+    }
+    if (!clinicId) {
+      toast.error(t('doctors.noClinicLinked'));
+      return;
+    }
 
     const { error } = await supabase.from('doctors').insert({
       clinic_id: clinicId,
@@ -106,7 +113,8 @@ const ClinicDoctors = () => {
     });
 
     if (error) {
-      toast.error(t('common.error'));
+      console.error('Error adding doctor:', error);
+      toast.error(error.message || t('common.error'));
     } else {
       toast.success(t('common.success'));
       setNewDoctor({ name: '', specialization: '', phone: '' });

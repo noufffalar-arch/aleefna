@@ -206,7 +206,9 @@
     "noSlotsAvailable": "لا توجد مواعيد متاحة لهذا الطبيب",
     "fillRequired": "الرجاء تعبئة جميع الحقول المطلوبة",
     "whatsapp": "واتساب",
-    "call": "اتصال"
+    "call": "اتصال",
+    "doctorNameRequired": "الرجاء إدخال اسم الطبيب",
+    "noClinicLinked": "لم يتم ربط العيادة بحسابك بعد"
   },
   "shelter": {
     "dashboard": "لوحة تحكم الملجأ",
