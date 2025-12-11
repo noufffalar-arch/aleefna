@@ -440,7 +440,7 @@ const ClinicSettings = () => {
 
       {/* Sticky Save Button */}
       <div className="h-24"></div>
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
+      <div className="fixed bottom-16 left-0 right-0 p-4 bg-background border-t border-border">
         <Button
           onClick={handleSave}
           disabled={saving || !clinicData.name}
