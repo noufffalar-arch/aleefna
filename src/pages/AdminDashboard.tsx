@@ -21,14 +21,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, ArrowRight, Users, Shield } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Users, Shield, Edit2, Check, X } from 'lucide-react';
+import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
+
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface UserProfile {
   id: string;
   user_id: string;
   full_name: string;
   email: string | null;
-  role: string;
+  role: UserRole;
   created_at: string;
 }
 
@@ -42,6 +46,8 @@ const AdminDashboard = () => {
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingRole, setEditingRole] = useState<UserRole>('owner');
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -49,24 +55,24 @@ const AdminDashboard = () => {
     }
   }, [isAdmin, adminLoading, navigate]);
 
+  const fetchUsers = async () => {
+    if (!isAdmin) return;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching users:', error);
+    } else {
+      setUsers(data || []);
+      setFilteredUsers(data || []);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      if (!isAdmin) return;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching users:', error);
-      } else {
-        setUsers(data || []);
-        setFilteredUsers(data || []);
-      }
-      setLoading(false);
-    };
-
     if (isAdmin) {
       fetchUsers();
     }
@@ -99,6 +105,32 @@ const AdminDashboard = () => {
     });
   };
 
+  const handleEditRole = (user: UserProfile) => {
+    setEditingUserId(user.id);
+    setEditingRole(user.role);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
+    setEditingRole('owner');
+  };
+
+  const handleSaveRole = async (userId: string) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: editingRole })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Error updating role:', error);
+      toast.error(t('common.error'));
+    } else {
+      toast.success(t('admin.roleUpdated'));
+      setEditingUserId(null);
+      fetchUsers();
+    }
+  };
+
   if (adminLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -112,6 +144,7 @@ const AdminDashboard = () => {
   }
 
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
+  const roles: UserRole[] = ['owner', 'shelter', 'clinic', 'store', 'government'];
 
   return (
     <div className="min-h-screen bg-background" dir={isRtl ? 'rtl' : 'ltr'}>
@@ -179,12 +212,13 @@ const AdminDashboard = () => {
                     <TableHead>{t('admin.email')}</TableHead>
                     <TableHead>{t('admin.userType')}</TableHead>
                     <TableHead>{t('admin.registrationDate')}</TableHead>
+                    <TableHead>{t('admin.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                         {t('admin.noUsers')}
                       </TableCell>
                     </TableRow>
@@ -194,11 +228,57 @@ const AdminDashboard = () => {
                         <TableCell className="font-medium">{user.full_name || '-'}</TableCell>
                         <TableCell>{user.email || '-'}</TableCell>
                         <TableCell>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                            {getRoleLabel(user.role)}
-                          </span>
+                          {editingUserId === user.id ? (
+                            <Select value={editingRole} onValueChange={(value) => setEditingRole(value as UserRole)}>
+                              <SelectTrigger className="w-40">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {roles.map((role) => (
+                                  <SelectItem key={role} value={role}>
+                                    {getRoleLabel(role)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                              {getRoleLabel(user.role)}
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell>{formatDate(user.created_at)}</TableCell>
+                        <TableCell>
+                          {editingUserId === user.id ? (
+                            <div className="flex gap-2">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                onClick={() => handleSaveRole(user.id)}
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={handleCancelEdit}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              onClick={() => handleEditRole(user)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))
                   )}

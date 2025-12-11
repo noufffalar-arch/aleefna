@@ -210,6 +210,8 @@
     "roleShelter": "جمعية رعاية حيوان",
     "roleClinic": "عيادة بيطرية",
     "roleStore": "متجر حيوانات",
-    "roleGovernment": "جهة حكومية"
+    "roleGovernment": "جهة حكومية",
+    "actions": "الإجراءات",
+    "roleUpdated": "تم تحديث الدور بنجاح"
   }
 }
