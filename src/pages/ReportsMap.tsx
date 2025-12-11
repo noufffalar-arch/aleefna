@@ -3,16 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowRight, MapPin, AlertTriangle, Search, X } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { ArrowRight, AlertTriangle, Search, X } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+// Fix default marker icon issue in Leaflet
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+const DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
 // Custom icons for different report types
-const missingPetIcon = new L.DivIcon({
+const missingPetIcon = L.divIcon({
   className: 'custom-marker',
-  html: `<div style="background: hsl(var(--primary)); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+  html: `<div style="background: #5B9B5B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
     </svg>
@@ -22,9 +33,9 @@ const missingPetIcon = new L.DivIcon({
   popupAnchor: [0, -32],
 });
 
-const strayAnimalIcon = new L.DivIcon({
+const strayAnimalIcon = L.divIcon({
   className: 'custom-marker',
-  html: `<div style="background: hsl(var(--destructive)); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+  html: `<div style="background: #ef4444; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
     </svg>
@@ -65,20 +76,6 @@ interface SelectedReport {
   data: MissingReport | StrayReport;
 }
 
-// Component to fit bounds when reports change
-const FitBounds = ({ reports }: { reports: { lat: number; lng: number }[] }) => {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (reports.length > 0) {
-      const bounds = L.latLngBounds(reports.map(r => [r.lat, r.lng]));
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
-    }
-  }, [reports, map]);
-  
-  return null;
-};
-
 const ReportsMap = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -111,21 +108,6 @@ const ReportsMap = () => {
     setLoading(false);
   };
 
-  const allMarkers = [
-    ...(filter === 'all' || filter === 'missing' 
-      ? missingReports.filter(r => r.latitude && r.longitude).map(r => ({
-          lat: r.latitude!,
-          lng: r.longitude!,
-        }))
-      : []),
-    ...(filter === 'all' || filter === 'stray'
-      ? strayReports.filter(r => r.latitude && r.longitude).map(r => ({
-          lat: r.latitude!,
-          lng: r.longitude!,
-        }))
-      : []),
-  ];
-
   const getDangerColor = (level: string) => {
     switch (level) {
       case 'high': return 'bg-red-500';
@@ -142,10 +124,18 @@ const ReportsMap = () => {
     }
   };
 
+  const filteredMissingReports = (filter === 'all' || filter === 'missing') 
+    ? missingReports.filter(r => r.latitude && r.longitude)
+    : [];
+
+  const filteredStrayReports = (filter === 'all' || filter === 'stray')
+    ? strayReports.filter(r => r.latitude && r.longitude)
+    : [];
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="px-4 pt-6 pb-4 flex items-center justify-between bg-background/95 backdrop-blur-sm border-b">
+      <div className="px-4 pt-6 pb-4 flex items-center justify-between bg-background/95 backdrop-blur-sm border-b z-10">
         <div></div>
         <h1 className="text-lg font-bold text-foreground">خريطة البلاغات</h1>
         <button onClick={() => navigate(-1)} className="text-muted-foreground">
@@ -154,7 +144,7 @@ const ReportsMap = () => {
       </div>
 
       {/* Filter Buttons */}
-      <div className="px-4 py-3 flex gap-2 bg-background border-b">
+      <div className="px-4 py-3 flex gap-2 bg-background border-b z-10">
         <Button
           variant={filter === 'all' ? 'default' : 'outline'}
           size="sm"
@@ -183,7 +173,7 @@ const ReportsMap = () => {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" style={{ minHeight: '400px' }}>
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -192,59 +182,50 @@ const ReportsMap = () => {
           <MapContainer
             center={[26.4207, 50.0888]}
             zoom={12}
-            className="h-full w-full"
-            style={{ height: '100%', minHeight: '400px' }}
+            style={{ height: '100%', width: '100%', minHeight: '400px' }}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            
-            {allMarkers.length > 0 && <FitBounds reports={allMarkers} />}
 
             {/* Missing Pet Markers */}
-            {(filter === 'all' || filter === 'missing') &&
-              missingReports
-                .filter(r => r.latitude && r.longitude)
-                .map(report => (
-                  <Marker
-                    key={`missing-${report.id}`}
-                    position={[report.latitude!, report.longitude!]}
-                    icon={missingPetIcon}
-                    eventHandlers={{
-                      click: () => setSelectedReport({ type: 'missing', data: report }),
-                    }}
-                  >
-                    <Popup>
-                      <div className="text-center p-1">
-                        <p className="font-bold">{report.pets?.name || 'حيوان مفقود'}</p>
-                        <p className="text-xs text-muted-foreground">{report.last_seen_location}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
+            {filteredMissingReports.map(report => (
+              <Marker
+                key={`missing-${report.id}`}
+                position={[report.latitude!, report.longitude!]}
+                icon={missingPetIcon}
+                eventHandlers={{
+                  click: () => setSelectedReport({ type: 'missing', data: report }),
+                }}
+              >
+                <Popup>
+                  <div className="text-center p-1">
+                    <p className="font-bold">{report.pets?.name || 'حيوان مفقود'}</p>
+                    <p className="text-xs text-gray-500">{report.last_seen_location}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
 
             {/* Stray Animal Markers */}
-            {(filter === 'all' || filter === 'stray') &&
-              strayReports
-                .filter(r => r.latitude && r.longitude)
-                .map(report => (
-                  <Marker
-                    key={`stray-${report.id}`}
-                    position={[report.latitude!, report.longitude!]}
-                    icon={strayAnimalIcon}
-                    eventHandlers={{
-                      click: () => setSelectedReport({ type: 'stray', data: report }),
-                    }}
-                  >
-                    <Popup>
-                      <div className="text-center p-1">
-                        <p className="font-bold">{getAnimalTypeLabel(report.animal_type)} ضال</p>
-                        <p className="text-xs text-muted-foreground">{report.location_text}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
+            {filteredStrayReports.map(report => (
+              <Marker
+                key={`stray-${report.id}`}
+                position={[report.latitude!, report.longitude!]}
+                icon={strayAnimalIcon}
+                eventHandlers={{
+                  click: () => setSelectedReport({ type: 'stray', data: report }),
+                }}
+              >
+                <Popup>
+                  <div className="text-center p-1">
+                    <p className="font-bold">{getAnimalTypeLabel(report.animal_type)} ضال</p>
+                    <p className="text-xs text-gray-500">{report.location_text}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
           </MapContainer>
         )}
 
@@ -266,7 +247,7 @@ const ReportsMap = () => {
 
       {/* Selected Report Detail Panel */}
       {selectedReport && (
-        <div className="fixed inset-x-0 bottom-0 bg-background border-t rounded-t-2xl shadow-2xl z-[1001] animate-in slide-in-from-bottom">
+        <div className="fixed inset-x-0 bottom-0 bg-background border-t rounded-t-2xl shadow-2xl z-[1001] animate-in slide-in-from-bottom max-h-[60vh] overflow-y-auto">
           <div className="p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
