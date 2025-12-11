@@ -241,18 +241,32 @@ const Dashboard = () => {
           onClick={() => navigate('/reports-map')} 
           className="aleefna-card-hover cursor-pointer h-44 overflow-hidden relative"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-destructive/10 flex items-center justify-center">
+          {/* Map Background */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url('https://tile.openstreetmap.org/12/2400/1580.png')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              opacity: 0.25,
+            }}
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-background/60 via-transparent to-background/60" />
+          
+          {/* Content */}
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="flex justify-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <Search className="w-4 h-4 text-white" />
+              <div className="flex justify-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-destructive flex items-center justify-center shadow-lg">
+                  <AlertTriangle className="w-5 h-5 text-white" />
                 </div>
-                <div className="w-8 h-8 rounded-full bg-destructive flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4 text-white" />
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                  <Search className="w-5 h-5 text-white" />
                 </div>
               </div>
-              <MapPin className="w-10 h-10 text-primary mx-auto mb-2" />
-              <p className="text-muted-foreground text-sm">عرض خريطة البلاغات</p>
+              <MapPin className="w-12 h-12 text-primary mx-auto mb-2" />
+              <p className="text-foreground font-medium text-sm">{t('dashboard.lostMap')}</p>
             </div>
           </div>
         </div>
