@@ -55,11 +55,66 @@ export type Database = {
           },
         ]
       }
+      appointment_slots: {
+        Row: {
+          booked_by: string | null
+          clinic_id: string
+          created_at: string
+          doctor_id: string
+          end_time: string
+          id: string
+          is_booked: boolean | null
+          slot_date: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          booked_by?: string | null
+          clinic_id: string
+          created_at?: string
+          doctor_id: string
+          end_time: string
+          id?: string
+          is_booked?: boolean | null
+          slot_date: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          booked_by?: string | null
+          clinic_id?: string
+          created_at?: string
+          doctor_id?: string
+          end_time?: string
+          id?: string
+          is_booked?: boolean | null
+          slot_date?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_slots_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_slots_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           appointment_date: string
           clinic_id: string | null
           created_at: string
+          doctor_id: string | null
           doctor_name: string | null
           id: string
           notes: string | null
@@ -74,6 +129,7 @@ export type Database = {
           appointment_date: string
           clinic_id?: string | null
           created_at?: string
+          doctor_id?: string | null
           doctor_name?: string | null
           id?: string
           notes?: string | null
@@ -88,6 +144,7 @@ export type Database = {
           appointment_date?: string
           clinic_id?: string | null
           created_at?: string
+          doctor_id?: string | null
           doctor_name?: string | null
           id?: string
           notes?: string | null
@@ -104,6 +161,13 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
             referencedColumns: ["id"]
           },
           {
@@ -213,6 +277,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      doctors: {
+        Row: {
+          clinic_id: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          photo_url: string | null
+          specialization: string | null
+          updated_at: string
+        }
+        Insert: {
+          clinic_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          photo_url?: string | null
+          specialization?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clinic_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          specialization?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctors_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       missing_reports: {
         Row: {
