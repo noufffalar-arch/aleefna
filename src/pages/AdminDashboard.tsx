@@ -7,13 +7,14 @@ import { useRTL } from '@/hooks/useRTL';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2, Landmark, Store, AlertTriangle, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2, Landmark, Store, AlertTriangle, User, Stethoscope } from 'lucide-react';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminPetsTab from '@/components/admin/AdminPetsTab';
 import AdminSheltersTab from '@/components/admin/AdminSheltersTab';
 import AdminGovernmentTab from '@/components/admin/AdminGovernmentTab';
 import AdminStoresTab from '@/components/admin/AdminStoresTab';
 import AdminStrayReportsTab from '@/components/admin/AdminStrayReportsTab';
+import AdminClinicsTab from '@/components/admin/AdminClinicsTab';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
@@ -146,6 +147,10 @@ const AdminDashboard = () => {
                 <Store className="h-4 w-4" />
                 <span>{t('admin.storesTab')}</span>
               </TabsTrigger>
+              <TabsTrigger value="clinics" className="flex items-center gap-2">
+                <Stethoscope className="h-4 w-4" />
+                <span>{t('admin.clinicsTab', 'العيادات')}</span>
+              </TabsTrigger>
               <TabsTrigger value="stray" className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
                 <span>{t('admin.strayTab')}</span>
@@ -177,6 +182,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="stores">
             <AdminStoresTab users={users} isRtl={isRtl} />
+          </TabsContent>
+
+          <TabsContent value="clinics">
+            <AdminClinicsTab isRtl={isRtl} />
           </TabsContent>
 
           <TabsContent value="stray">
