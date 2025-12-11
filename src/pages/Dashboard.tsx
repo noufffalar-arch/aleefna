@@ -182,17 +182,25 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* Lost Map Preview */}
+      {/* Reports Map Preview */}
       <div className="px-6">
         <h2 className="font-bold text-lg mb-4 text-foreground text-start">{t('dashboard.lostMap')}</h2>
         <div 
-          onClick={() => navigate('/lost-map')} 
+          onClick={() => navigate('/reports-map')} 
           className="aleefna-card-hover cursor-pointer h-44 overflow-hidden relative"
         >
-          <div className="absolute inset-0 bg-secondary/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-destructive/10 flex items-center justify-center">
             <div className="text-center">
+              <div className="flex justify-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                  <Search className="w-4 h-4 text-white" />
+                </div>
+                <div className="w-8 h-8 rounded-full bg-destructive flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4 text-white" />
+                </div>
+              </div>
               <MapPin className="w-10 h-10 text-primary mx-auto mb-2" />
-              <p className="text-muted-foreground text-sm">{t('common.viewAll')}</p>
+              <p className="text-muted-foreground text-sm">عرض خريطة البلاغات</p>
             </div>
           </div>
         </div>

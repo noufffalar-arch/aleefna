@@ -18,6 +18,7 @@ import Store from "./pages/Store";
 import History from "./pages/History";
 import MissingReport from "./pages/MissingReport";
 import StrayReport from "./pages/StrayReport";
+import ReportsMap from "./pages/ReportsMap";
 import BookAppointment from "./pages/BookAppointment";
 import AddPet from "./pages/AddPet";
 import Adoption from "./pages/Adoption";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/history" element={<History />} />
             <Route path="/missing-report" element={<MissingReport />} />
             <Route path="/stray-report" element={<StrayReport />} />
+            <Route path="/reports-map" element={<ReportsMap />} />
             <Route path="/book-appointment" element={<BookAppointment />} />
             <Route path="/add-pet" element={<AddPet />} />
             <Route path="/adoption" element={<Adoption />} />

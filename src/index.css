@@ -197,6 +197,29 @@
     @apply w-32 h-32 bg-card rounded-[3rem] flex items-center justify-center shadow-xl;
     border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   }
+
+  /* Leaflet Map Styles */
+  .leaflet-container {
+    font-family: inherit;
+    z-index: 0;
+  }
+
+  .leaflet-popup-content-wrapper {
+    @apply bg-card rounded-lg shadow-lg border border-border;
+  }
+
+  .leaflet-popup-content {
+    @apply text-foreground m-2;
+  }
+
+  .leaflet-popup-tip {
+    @apply bg-card;
+  }
+
+  .custom-marker {
+    background: transparent !important;
+    border: none !important;
+  }
 }
 
 @layer utilities {

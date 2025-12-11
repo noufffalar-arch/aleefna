@@ -1,0 +1,367 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ArrowRight, MapPin, AlertTriangle, Search, X } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Custom icons for different report types
+const missingPetIcon = new L.DivIcon({
+  className: 'custom-marker',
+  html: `<div style="background: hsl(var(--primary)); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+  </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
+const strayAnimalIcon = new L.DivIcon({
+  className: 'custom-marker',
+  html: `<div style="background: hsl(var(--destructive)); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+    </svg>
+  </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
+
+interface MissingReport {
+  id: string;
+  pet_id: string;
+  last_seen_location: string;
+  last_seen_date: string;
+  latitude: number | null;
+  longitude: number | null;
+  description: string | null;
+  status: string | null;
+  contact_phone: string;
+  pets?: { name: string; species: string; photo_url: string | null };
+}
+
+interface StrayReport {
+  id: string;
+  animal_type: string;
+  danger_level: string;
+  location_text: string;
+  latitude: number | null;
+  longitude: number | null;
+  description: string | null;
+  photo_url: string | null;
+  status: string | null;
+  created_at: string;
+}
+
+interface SelectedReport {
+  type: 'missing' | 'stray';
+  data: MissingReport | StrayReport;
+}
+
+// Component to fit bounds when reports change
+const FitBounds = ({ reports }: { reports: { lat: number; lng: number }[] }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (reports.length > 0) {
+      const bounds = L.latLngBounds(reports.map(r => [r.lat, r.lng]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+    }
+  }, [reports, map]);
+  
+  return null;
+};
+
+const ReportsMap = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [missingReports, setMissingReports] = useState<MissingReport[]>([]);
+  const [strayReports, setStrayReports] = useState<StrayReport[]>([]);
+  const [selectedReport, setSelectedReport] = useState<SelectedReport | null>(null);
+  const [filter, setFilter] = useState<'all' | 'missing' | 'stray'>('all');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    setLoading(true);
+    
+    const [missingRes, strayRes] = await Promise.all([
+      supabase
+        .from('missing_reports')
+        .select('*, pets(name, species, photo_url)')
+        .eq('status', 'active'),
+      supabase
+        .from('stray_reports')
+        .select('*')
+        .in('status', ['new', 'in_progress']),
+    ]);
+
+    if (missingRes.data) setMissingReports(missingRes.data);
+    if (strayRes.data) setStrayReports(strayRes.data);
+    setLoading(false);
+  };
+
+  const allMarkers = [
+    ...(filter === 'all' || filter === 'missing' 
+      ? missingReports.filter(r => r.latitude && r.longitude).map(r => ({
+          lat: r.latitude!,
+          lng: r.longitude!,
+        }))
+      : []),
+    ...(filter === 'all' || filter === 'stray'
+      ? strayReports.filter(r => r.latitude && r.longitude).map(r => ({
+          lat: r.latitude!,
+          lng: r.longitude!,
+        }))
+      : []),
+  ];
+
+  const getDangerColor = (level: string) => {
+    switch (level) {
+      case 'high': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-500';
+      default: return 'bg-green-500';
+    }
+  };
+
+  const getAnimalTypeLabel = (type: string) => {
+    switch (type) {
+      case 'cat': return t('pet.cat');
+      case 'dog': return t('pet.dog');
+      default: return t('pet.other');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <div className="px-4 pt-6 pb-4 flex items-center justify-between bg-background/95 backdrop-blur-sm border-b">
+        <div></div>
+        <h1 className="text-lg font-bold text-foreground">خريطة البلاغات</h1>
+        <button onClick={() => navigate(-1)} className="text-muted-foreground">
+          <ArrowRight className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Filter Buttons */}
+      <div className="px-4 py-3 flex gap-2 bg-background border-b">
+        <Button
+          variant={filter === 'all' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('all')}
+        >
+          الكل ({missingReports.length + strayReports.length})
+        </Button>
+        <Button
+          variant={filter === 'missing' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('missing')}
+          className="gap-1"
+        >
+          <Search className="w-3 h-3" />
+          مفقود ({missingReports.length})
+        </Button>
+        <Button
+          variant={filter === 'stray' ? 'destructive' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('stray')}
+          className="gap-1"
+        >
+          <AlertTriangle className="w-3 h-3" />
+          ضال ({strayReports.length})
+        </Button>
+      </div>
+
+      {/* Map */}
+      <div className="flex-1 relative">
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <MapContainer
+            center={[26.4207, 50.0888]}
+            zoom={12}
+            className="h-full w-full"
+            style={{ height: '100%', minHeight: '400px' }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            
+            {allMarkers.length > 0 && <FitBounds reports={allMarkers} />}
+
+            {/* Missing Pet Markers */}
+            {(filter === 'all' || filter === 'missing') &&
+              missingReports
+                .filter(r => r.latitude && r.longitude)
+                .map(report => (
+                  <Marker
+                    key={`missing-${report.id}`}
+                    position={[report.latitude!, report.longitude!]}
+                    icon={missingPetIcon}
+                    eventHandlers={{
+                      click: () => setSelectedReport({ type: 'missing', data: report }),
+                    }}
+                  >
+                    <Popup>
+                      <div className="text-center p-1">
+                        <p className="font-bold">{report.pets?.name || 'حيوان مفقود'}</p>
+                        <p className="text-xs text-muted-foreground">{report.last_seen_location}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+
+            {/* Stray Animal Markers */}
+            {(filter === 'all' || filter === 'stray') &&
+              strayReports
+                .filter(r => r.latitude && r.longitude)
+                .map(report => (
+                  <Marker
+                    key={`stray-${report.id}`}
+                    position={[report.latitude!, report.longitude!]}
+                    icon={strayAnimalIcon}
+                    eventHandlers={{
+                      click: () => setSelectedReport({ type: 'stray', data: report }),
+                    }}
+                  >
+                    <Popup>
+                      <div className="text-center p-1">
+                        <p className="font-bold">{getAnimalTypeLabel(report.animal_type)} ضال</p>
+                        <p className="text-xs text-muted-foreground">{report.location_text}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+          </MapContainer>
+        )}
+
+        {/* Legend */}
+        <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border z-[1000]">
+          <p className="text-xs font-semibold mb-2">دليل الألوان</p>
+          <div className="flex flex-col gap-1.5 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-primary"></div>
+              <span>حيوان مفقود</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-destructive"></div>
+              <span>حيوان ضال</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Selected Report Detail Panel */}
+      {selectedReport && (
+        <div className="fixed inset-x-0 bottom-0 bg-background border-t rounded-t-2xl shadow-2xl z-[1001] animate-in slide-in-from-bottom">
+          <div className="p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                {selectedReport.type === 'missing' ? (
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Search className="w-4 h-4 text-primary" />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <AlertTriangle className="w-4 h-4 text-destructive" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-bold">
+                    {selectedReport.type === 'missing'
+                      ? (selectedReport.data as MissingReport).pets?.name || 'حيوان مفقود'
+                      : `${getAnimalTypeLabel((selectedReport.data as StrayReport).animal_type)} ضال`}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedReport.type === 'missing'
+                      ? (selectedReport.data as MissingReport).last_seen_location
+                      : (selectedReport.data as StrayReport).location_text}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedReport(null)}>
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Image */}
+            {selectedReport.type === 'missing' && (selectedReport.data as MissingReport).pets?.photo_url && (
+              <img
+                src={(selectedReport.data as MissingReport).pets?.photo_url!}
+                alt="صورة الحيوان"
+                className="w-full h-40 object-cover rounded-lg mb-3"
+              />
+            )}
+            {selectedReport.type === 'stray' && (selectedReport.data as StrayReport).photo_url && (
+              <img
+                src={(selectedReport.data as StrayReport).photo_url!}
+                alt="صورة الحيوان"
+                className="w-full h-40 object-cover rounded-lg mb-3"
+              />
+            )}
+
+            {/* Details */}
+            <div className="space-y-2 text-sm">
+              {selectedReport.type === 'missing' ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">النوع:</span>
+                    <span>{(selectedReport.data as MissingReport).pets?.species === 'cat' ? 'قطة' : 'كلب'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">آخر مشاهدة:</span>
+                    <span dir="ltr">{new Date((selectedReport.data as MissingReport).last_seen_date).toLocaleDateString('ar-SA')}</span>
+                  </div>
+                  {(selectedReport.data as MissingReport).description && (
+                    <p className="text-muted-foreground text-xs mt-2">
+                      {(selectedReport.data as MissingReport).description}
+                    </p>
+                  )}
+                  <Button className="w-full mt-3" asChild>
+                    <a href={`tel:${(selectedReport.data as MissingReport).contact_phone}`}>
+                      📞 اتصل بالمالك
+                    </a>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">مستوى الخطورة:</span>
+                    <span className={`px-2 py-0.5 rounded-full text-white text-xs ${getDangerColor((selectedReport.data as StrayReport).danger_level)}`}>
+                      {(selectedReport.data as StrayReport).danger_level === 'high' ? 'عالي' : 
+                       (selectedReport.data as StrayReport).danger_level === 'medium' ? 'متوسط' : 'منخفض'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">تاريخ البلاغ:</span>
+                    <span dir="ltr">{new Date((selectedReport.data as StrayReport).created_at).toLocaleDateString('ar-SA')}</span>
+                  </div>
+                  {(selectedReport.data as StrayReport).description && (
+                    <p className="text-muted-foreground text-xs mt-2">
+                      {(selectedReport.data as StrayReport).description}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ReportsMap;
