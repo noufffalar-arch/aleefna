@@ -129,6 +129,27 @@
     "tips": "نصائح العناية",
     "services": "خدمات التجميل"
   },
+  "clinic": {
+    "dashboard": "لوحة تحكم العيادة",
+    "appointments": "المواعيد",
+    "adoptionAnimals": "حيوانات للتبني",
+    "settings": "الإعدادات",
+    "noAppointments": "لا توجد مواعيد حالياً",
+    "noClinicData": "لم يتم إعداد بيانات العيادة بعد",
+    "createClinic": "إنشاء العيادة",
+    "newClinic": "عيادة جديدة",
+    "doctor": "الطبيب",
+    "currency": "ر.س",
+    "approve": "قبول",
+    "reject": "رفض",
+    "markComplete": "إكمال",
+    "contact": "تواصل",
+    "addAdoptionAnimal": "إضافة حيوان للتبني",
+    "availableForAdoption": "متاح للتبني",
+    "clinicSettings": "إعدادات العيادة",
+    "settingsHint": "قم بتحديث معلومات العيادة والخدمات والأسعار",
+    "editClinicInfo": "تعديل بيانات العيادة"
+  },
   "shelter": {
     "dashboard": "لوحة تحكم الملجأ",
     "adoptableAnimals": "الحيوانات المتاحة للتبني",

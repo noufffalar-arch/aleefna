@@ -129,6 +129,27 @@
     "tips": "Care Tips",
     "services": "Grooming Services"
   },
+  "clinic": {
+    "dashboard": "Clinic Dashboard",
+    "appointments": "Appointments",
+    "adoptionAnimals": "Adoption Animals",
+    "settings": "Settings",
+    "noAppointments": "No appointments yet",
+    "noClinicData": "Clinic data not set up yet",
+    "createClinic": "Create Clinic",
+    "newClinic": "New Clinic",
+    "doctor": "Doctor",
+    "currency": "SAR",
+    "approve": "Approve",
+    "reject": "Reject",
+    "markComplete": "Complete",
+    "contact": "Contact",
+    "addAdoptionAnimal": "Add Animal for Adoption",
+    "availableForAdoption": "Available for Adoption",
+    "clinicSettings": "Clinic Settings",
+    "settingsHint": "Update your clinic information, services, and prices",
+    "editClinicInfo": "Edit Clinic Info"
+  },
   "shelter": {
     "dashboard": "Shelter Dashboard",
     "adoptableAnimals": "Adoptable Animals",
