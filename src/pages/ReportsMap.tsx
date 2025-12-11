@@ -185,7 +185,68 @@ const ReportsMap = () => {
 
   useEffect(() => {
     fetchReports();
-  }, []);
+
+    // Set up realtime subscriptions for new reports
+    const missingChannel = supabase
+      .channel('missing-reports-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'missing_reports'
+        },
+        (payload) => {
+          console.log('New missing report:', payload);
+          // Fetch the new report with pet info
+          supabase
+            .from('missing_reports')
+            .select('*, pets(name, species, photo_url)')
+            .eq('id', payload.new.id)
+            .single()
+            .then(({ data }) => {
+              if (data) {
+                setMissingReports(prev => [data, ...prev]);
+                toast({
+                  title: '🔔 بلاغ جديد!',
+                  description: `تم الإبلاغ عن حيوان مفقود: ${data.pets?.name || 'حيوان أليف'}`,
+                });
+              }
+            });
+        }
+      )
+      .subscribe();
+
+    const strayChannel = supabase
+      .channel('stray-reports-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'stray_reports'
+        },
+        (payload) => {
+          console.log('New stray report:', payload);
+          const newReport = payload.new as StrayReport;
+          setStrayReports(prev => [newReport, ...prev]);
+          
+          const animalLabel = newReport.animal_type === 'cat' ? 'قطة' : 
+                             newReport.animal_type === 'dog' ? 'كلب' : 'حيوان';
+          toast({
+            title: '⚠️ بلاغ حيوان ضال!',
+            description: `تم الإبلاغ عن ${animalLabel} ضال في ${newReport.location_text}`,
+            variant: newReport.danger_level === 'high' ? 'destructive' : 'default',
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(missingChannel);
+      supabase.removeChannel(strayChannel);
+    };
+  }, [toast]);
 
   // Initialize map
   useEffect(() => {
