@@ -206,7 +206,17 @@
     "noSlotsAvailable": "No available slots for this doctor",
     "fillRequired": "Please fill all required fields",
     "whatsapp": "WhatsApp",
-    "call": "Call"
+    "call": "Call",
+    "workShift": "Work Shift",
+    "morningShift": "Morning",
+    "eveningShift": "Evening",
+    "fullDayShift": "Full Day",
+    "daysAhead": "Number of Days",
+    "days": "days",
+    "daysAheadHint": "Slots will be auto-generated for this many days (excluding Fridays)",
+    "doctorAddedWithSlots": "Doctor added and slots generated successfully",
+    "doctorNameRequired": "Please enter doctor name",
+    "noClinicLinked": "No clinic linked to your account yet"
   },
   "shelter": {
     "dashboard": "Shelter Dashboard",

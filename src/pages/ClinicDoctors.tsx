@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, ArrowRight, Plus, Trash2, User, Clock, Calendar } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, User, Clock, Calendar, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 interface Doctor {
@@ -28,6 +29,14 @@ interface TimeSlot {
   is_booked: boolean;
 }
 
+type ShiftType = 'morning' | 'evening' | 'fullday';
+
+const SHIFT_TIMES = {
+  morning: { start: '08:00', end: '14:00', slots: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00'] },
+  evening: { start: '16:00', end: '22:00', slots: ['16:00', '17:00', '18:00', '19:00', '20:00', '21:00'] },
+  fullday: { start: '08:00', end: '22:00', slots: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'] }
+};
+
 const ClinicDoctors = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -39,8 +48,15 @@ const ClinicDoctors = () => {
   const [showAddDoctor, setShowAddDoctor] = useState(false);
   const [showAddSlot, setShowAddSlot] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
+  const [addingDoctor, setAddingDoctor] = useState(false);
   
-  const [newDoctor, setNewDoctor] = useState({ name: '', specialization: '', phone: '' });
+  const [newDoctor, setNewDoctor] = useState({ 
+    name: '', 
+    specialization: '', 
+    phone: '',
+    shift: 'morning' as ShiftType,
+    daysAhead: 7
+  });
   const [newSlot, setNewSlot] = useState({ slot_date: '', start_time: '', end_time: '' });
 
   const isRtl = i18n.language === 'ar';
@@ -95,6 +111,43 @@ const ClinicDoctors = () => {
     if (data) setSlots(data);
   };
 
+  const generateSlotsForDoctor = async (doctorId: string, shift: ShiftType, daysAhead: number) => {
+    if (!clinicId) return;
+    
+    const slotsToInsert: { clinic_id: string; doctor_id: string; slot_date: string; start_time: string; end_time: string }[] = [];
+    const shiftData = SHIFT_TIMES[shift];
+    
+    for (let day = 1; day <= daysAhead; day++) {
+      const date = new Date();
+      date.setDate(date.getDate() + day);
+      
+      // Skip Fridays (day 5)
+      if (date.getDay() === 5) continue;
+      
+      const dateStr = date.toISOString().split('T')[0];
+      
+      for (const slotTime of shiftData.slots) {
+        const startHour = parseInt(slotTime.split(':')[0]);
+        const endTime = `${(startHour + 1).toString().padStart(2, '0')}:00`;
+        
+        slotsToInsert.push({
+          clinic_id: clinicId,
+          doctor_id: doctorId,
+          slot_date: dateStr,
+          start_time: slotTime,
+          end_time: endTime
+        });
+      }
+    }
+    
+    if (slotsToInsert.length > 0) {
+      const { error } = await supabase.from('appointment_slots').insert(slotsToInsert);
+      if (error) {
+        console.error('Error generating slots:', error);
+      }
+    }
+  };
+
   const handleAddDoctor = async () => {
     if (!newDoctor.name) {
       toast.error(t('doctors.doctorNameRequired'));
@@ -105,22 +158,32 @@ const ClinicDoctors = () => {
       return;
     }
 
-    const { error } = await supabase.from('doctors').insert({
+    setAddingDoctor(true);
+
+    const { data, error } = await supabase.from('doctors').insert({
       clinic_id: clinicId,
       name: newDoctor.name,
       specialization: newDoctor.specialization || null,
       phone: newDoctor.phone || null
-    });
+    }).select().single();
 
     if (error) {
       console.error('Error adding doctor:', error);
       toast.error(error.message || t('common.error'));
-    } else {
-      toast.success(t('common.success'));
-      setNewDoctor({ name: '', specialization: '', phone: '' });
-      setShowAddDoctor(false);
-      fetchDoctors(clinicId);
+      setAddingDoctor(false);
+      return;
     }
+
+    // Auto-generate slots for the new doctor
+    if (data) {
+      await generateSlotsForDoctor(data.id, newDoctor.shift, newDoctor.daysAhead);
+    }
+
+    toast.success(t('doctors.doctorAddedWithSlots'));
+    setNewDoctor({ name: '', specialization: '', phone: '', shift: 'morning', daysAhead: 7 });
+    setShowAddDoctor(false);
+    setAddingDoctor(false);
+    await Promise.all([fetchDoctors(clinicId), fetchSlots(clinicId)]);
   };
 
   const handleDeleteDoctor = async (doctorId: string) => {
@@ -203,7 +266,7 @@ const ClinicDoctors = () => {
                   {t('doctors.addDoctor')}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{t('doctors.addDoctor')}</DialogTitle>
                 </DialogHeader>
@@ -233,8 +296,61 @@ const ClinicDoctors = () => {
                       dir="ltr"
                     />
                   </div>
-                  <Button onClick={handleAddDoctor} className="w-full" disabled={!newDoctor.name}>
-                    {t('common.add')}
+                  
+                  {/* Shift Selection */}
+                  <div className="space-y-2">
+                    <Label>{t('doctors.workShift')}</Label>
+                    <Select 
+                      value={newDoctor.shift} 
+                      onValueChange={(value: ShiftType) => setNewDoctor(prev => ({ ...prev, shift: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="morning">
+                          <div className="flex items-center gap-2">
+                            <Sun className="w-4 h-4" />
+                            {t('doctors.morningShift')} (8:00 - 14:00)
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="evening">
+                          <div className="flex items-center gap-2">
+                            <Moon className="w-4 h-4" />
+                            {t('doctors.eveningShift')} (16:00 - 22:00)
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="fullday">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            {t('doctors.fullDayShift')}
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Days Ahead */}
+                  <div className="space-y-2">
+                    <Label>{t('doctors.daysAhead')}</Label>
+                    <Select 
+                      value={newDoctor.daysAhead.toString()} 
+                      onValueChange={(value) => setNewDoctor(prev => ({ ...prev, daysAhead: parseInt(value) }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="7">7 {t('doctors.days')}</SelectItem>
+                        <SelectItem value="14">14 {t('doctors.days')}</SelectItem>
+                        <SelectItem value="30">30 {t('doctors.days')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">{t('doctors.daysAheadHint')}</p>
+                  </div>
+                  
+                  <Button onClick={handleAddDoctor} className="w-full" disabled={!newDoctor.name || addingDoctor}>
+                    {addingDoctor ? t('common.loading') : t('common.add')}
                   </Button>
                 </div>
               </DialogContent>
