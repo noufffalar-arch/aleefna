@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PawPrint, Eye, EyeOff, Globe } from 'lucide-react';
+import { PawPrint, Eye, EyeOff, Globe, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 import { changeLanguage } from '@/i18n';
 import useRTL from '@/hooks/useRTL';
@@ -15,7 +15,7 @@ type AuthMode = 'login' | 'signup' | 'forgot' | 'reset-sent';
 const Auth = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signIn, signUp, resetPassword, mockNafathLogin } = useAuth();
+  const { signIn, signUp, resetPassword, mockNafathLogin, enterGuestMode } = useAuth();
   const { isRtl } = useRTL();
   
   const [mode, setMode] = useState<AuthMode>('login');
@@ -89,6 +89,11 @@ const Auth = () => {
       toast.success(t('auth.loginSuccess'));
       navigate('/dashboard');
     }
+  };
+
+  const handleGuestMode = () => {
+    enterGuestMode();
+    navigate('/dashboard');
   };
 
   return (
@@ -171,6 +176,11 @@ const Auth = () => {
             
             <Button type="button" variant="outline" className="w-full border-primary text-primary" onClick={handleNafathLogin} disabled={loading}>
               {t('auth.loginWithNafath')}
+            </Button>
+
+            <Button type="button" variant="ghost" className="w-full text-muted-foreground" onClick={handleGuestMode}>
+              <UserX className="w-4 h-4 me-2" />
+              {t('auth.continueAsGuest')}
             </Button>
             
             <p className="text-center text-xs text-muted-foreground mt-4">

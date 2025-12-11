@@ -1,20 +1,36 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Grid3X3, ShoppingBag, Heart, User } from 'lucide-react';
+import { Home, Grid3X3, ShoppingBag, Heart, User, LogIn } from 'lucide-react';
 import useRTL from '@/hooks/useRTL';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const BottomNav = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { isRtl } = useRTL();
+  const { isGuest, exitGuestMode } = useAuth();
+
+  const handleNavClick = (path: string, requiresAuth: boolean) => {
+    if (isGuest && requiresAuth) {
+      if (path === '/profile') {
+        exitGuestMode();
+        navigate('/auth');
+      } else {
+        toast.info(t('guest.requireAuth'));
+      }
+      return;
+    }
+    navigate(path);
+  };
 
   const navItems = [
-    { key: 'home', icon: Home, path: '/dashboard' },
-    { key: 'services', icon: Grid3X3, path: '/services' },
-    { key: 'store', icon: ShoppingBag, path: '/store' },
-    { key: 'history', icon: Heart, path: '/history' },
-    { key: 'profile', icon: User, path: '/profile' },
+    { key: 'home', icon: Home, path: '/dashboard', requiresAuth: false },
+    { key: 'services', icon: Grid3X3, path: '/services', requiresAuth: false },
+    { key: 'store', icon: ShoppingBag, path: '/store', requiresAuth: false },
+    { key: 'history', icon: Heart, path: '/history', requiresAuth: true },
+    { key: 'profile', icon: isGuest ? LogIn : User, path: '/profile', requiresAuth: true },
   ];
 
   // Reverse order for RTL
@@ -29,11 +45,13 @@ const BottomNav = () => {
           return (
             <button
               key={item.key}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavClick(item.path, item.requiresAuth)}
               className={`bottom-nav-item ${isActive ? 'active' : ''}`}
             >
               <item.icon className="w-5 h-5" />
-              <span className="text-[10px]">{t(`nav.${item.key}`)}</span>
+              <span className="text-[10px]">
+                {isGuest && item.key === 'profile' ? t('auth.login') : t(`nav.${item.key}`)}
+              </span>
             </button>
           );
         })}

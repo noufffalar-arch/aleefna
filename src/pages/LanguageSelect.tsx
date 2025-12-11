@@ -1,14 +1,24 @@
 import { useNavigate } from 'react-router-dom';
-import { PawPrint, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { PawPrint, Globe, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { changeLanguage } from '@/i18n';
+import { useAuth } from '@/contexts/AuthContext';
 
 const LanguageSelect = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { enterGuestMode } = useAuth();
 
   const selectLanguage = (lang: 'ar' | 'en') => {
     changeLanguage(lang);
     navigate('/auth');
+  };
+
+  const continueAsGuest = (lang: 'ar' | 'en') => {
+    changeLanguage(lang);
+    enterGuestMode();
+    navigate('/dashboard');
   };
 
   return (
@@ -45,6 +55,31 @@ const LanguageSelect = () => {
         >
           English
         </Button>
+
+        {/* Guest Mode Button */}
+        <div className="pt-4 border-t border-primary/20">
+          <p className="text-center text-primary/60 text-sm mb-3">
+            أو تصفح كزائر / Or browse as guest
+          </p>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => continueAsGuest('ar')}
+              variant="ghost"
+              className="flex-1 h-12 text-primary/70 hover:text-primary hover:bg-primary/10"
+            >
+              <UserX className="w-4 h-4 me-2" />
+              زائر
+            </Button>
+            <Button 
+              onClick={() => continueAsGuest('en')}
+              variant="ghost"
+              className="flex-1 h-12 text-primary/70 hover:text-primary hover:bg-primary/10"
+            >
+              <UserX className="w-4 h-4 me-2" />
+              Guest
+            </Button>
+          </div>
+        </div>
       </div>
       
       <p className="text-primary/60 text-sm mt-8 animate-fade-in text-center">
