@@ -62,14 +62,22 @@ const AddPet = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="px-6 pt-8 pb-6 flex items-center justify-between">
-        <div></div>
+        <Button 
+          type="submit" 
+          form="add-pet-form"
+          size="sm"
+          disabled={loading}
+        >
+          <PawPrint className="w-4 h-4" />
+          {loading ? t('common.loading') : t('common.save')}
+        </Button>
         <h1 className="text-xl font-bold text-foreground">{t('pet.addPet')}</h1>
         <button onClick={() => navigate(-1)} className="text-muted-foreground">
           <ArrowRight className="w-6 h-6" />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="px-6 space-y-4 pb-8">
+      <form id="add-pet-form" onSubmit={handleSubmit} className="px-6 space-y-4 pb-8">
         <div>
           <label className="aleefna-label">{t('pet.name')} *</label>
           <Input 
@@ -161,10 +169,6 @@ const AddPet = () => {
           />
         </div>
 
-        <Button type="submit" className="w-full mt-6" disabled={loading}>
-          <PawPrint className="w-5 h-5" />
-          {loading ? t('common.loading') : t('common.save')}
-        </Button>
       </form>
     </div>
   );
