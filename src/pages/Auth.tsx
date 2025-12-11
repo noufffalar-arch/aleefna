@@ -97,7 +97,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background px-6 py-8" dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen flex flex-col bg-background px-6 py-8 overflow-y-auto" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Language Toggle */}
       <div className="flex justify-start">
         <button 
@@ -110,14 +110,14 @@ const Auth = () => {
       </div>
 
       {/* Logo */}
-      <div className="flex flex-col items-center mb-8 pt-4">
-        <div className="paw-logo mb-4">
-          <PawPrint className="w-10 h-10 text-primary" strokeWidth={2.5} />
+      <div className="flex flex-col items-center mb-4 pt-2">
+        <div className="paw-logo mb-2">
+          <PawPrint className="w-8 h-8 text-primary" strokeWidth={2.5} />
         </div>
       </div>
 
       {/* Title */}
-      <h1 className="text-2xl font-bold text-primary text-center mb-8">
+      <h1 className="text-xl font-bold text-primary text-center mb-6">
         {mode === 'login' && t('auth.login')}
         {mode === 'signup' && t('auth.signup')}
         {mode === 'forgot' && t('auth.forgotPassword')}
