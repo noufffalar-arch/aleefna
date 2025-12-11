@@ -486,6 +486,8 @@ export type Database = {
       stray_reports: {
         Row: {
           animal_type: string
+          clinic_name: string | null
+          clinic_notes: string | null
           created_at: string
           danger_level: string
           description: string | null
@@ -494,12 +496,16 @@ export type Database = {
           location_text: string
           longitude: number | null
           photo_url: string | null
+          rescue_date: string | null
           status: string | null
+          taken_to_clinic: boolean | null
           updated_at: string
           user_id: string
         }
         Insert: {
           animal_type: string
+          clinic_name?: string | null
+          clinic_notes?: string | null
           created_at?: string
           danger_level: string
           description?: string | null
@@ -508,12 +514,16 @@ export type Database = {
           location_text: string
           longitude?: number | null
           photo_url?: string | null
+          rescue_date?: string | null
           status?: string | null
+          taken_to_clinic?: boolean | null
           updated_at?: string
           user_id: string
         }
         Update: {
           animal_type?: string
+          clinic_name?: string | null
+          clinic_notes?: string | null
           created_at?: string
           danger_level?: string
           description?: string | null
@@ -522,7 +532,9 @@ export type Database = {
           location_text?: string
           longitude?: number | null
           photo_url?: string | null
+          rescue_date?: string | null
           status?: string | null
+          taken_to_clinic?: boolean | null
           updated_at?: string
           user_id?: string
         }
