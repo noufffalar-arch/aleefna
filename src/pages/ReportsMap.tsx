@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, AlertTriangle, Search, X } from 'lucide-react';
+import { ArrowRight, AlertTriangle, Search, X, LocateFixed } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -78,9 +78,45 @@ const ReportsMap = () => {
   const [selectedReport, setSelectedReport] = useState<SelectedReport | null>(null);
   const [filter, setFilter] = useState<'all' | 'missing' | 'stray'>('all');
   const [loading, setLoading] = useState(true);
+  const [locating, setLocating] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const userMarkerRef = useRef<L.Marker | null>(null);
+
+  const centerOnUserLocation = () => {
+    if (!navigator.geolocation || !mapRef.current) return;
+    
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        if (mapRef.current) {
+          mapRef.current.setView([latitude, longitude], 15, { animate: true });
+          
+          // Update or create user location marker
+          if (userMarkerRef.current) {
+            userMarkerRef.current.setLatLng([latitude, longitude]);
+          } else {
+            userMarkerRef.current = L.marker([latitude, longitude], {
+              icon: L.divIcon({
+                className: 'user-location-marker',
+                html: `<div style="background: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59,130,246,0.5);"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8],
+              })
+            }).addTo(mapRef.current).bindPopup('موقعك الحالي');
+          }
+        }
+        setLocating(false);
+      },
+      (error) => {
+        console.log('Geolocation error:', error.message);
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   useEffect(() => {
     fetchReports();
@@ -275,6 +311,16 @@ const ReportsMap = () => {
           <div ref={mapContainerRef} style={{ height: '100%', width: '100%', minHeight: '400px' }} />
         )}
 
+        {/* My Location Button */}
+        <button
+          onClick={centerOnUserLocation}
+          disabled={locating}
+          className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border z-[1000] hover:bg-accent transition-colors disabled:opacity-50"
+          title="موقعي الحالي"
+        >
+          <LocateFixed className={`w-5 h-5 text-primary ${locating ? 'animate-pulse' : ''}`} />
+        </button>
+
         {/* Legend */}
         <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border z-[1000]">
           <p className="text-xs font-semibold mb-2">دليل الألوان</p>
@@ -286,6 +332,10 @@ const ReportsMap = () => {
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded-full bg-destructive"></div>
               <span>حيوان ضال</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+              <span>موقعك</span>
             </div>
           </div>
         </div>
