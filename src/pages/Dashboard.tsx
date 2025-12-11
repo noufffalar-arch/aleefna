@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { PawPrint, Search, MapPin, Calendar, Heart, Scissors, AlertTriangle, User, Eye, AlertCircle, Syringe } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
@@ -18,6 +19,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, profile, loading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [pets, setPets] = useState<Pet[]>([]);
   const { isRtl, dir } = useRTL();
 
@@ -47,7 +49,7 @@ const Dashboard = () => {
     { key: 'care', icon: Scissors, bgColor: 'bg-secondary', iconColor: 'text-primary', path: '/care' },
   ];
 
-  if (loading) {
+  if (loading || adminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="paw-logo animate-pulse-soft">
@@ -55,6 +57,12 @@ const Dashboard = () => {
         </div>
       </div>
     );
+  }
+
+  // Check if user is an admin - redirect to admin dashboard
+  if (isAdmin) {
+    navigate('/admin');
+    return null;
   }
 
   // Check if user is a shelter - show different dashboard
