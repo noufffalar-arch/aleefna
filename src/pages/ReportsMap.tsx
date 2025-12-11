@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, AlertTriangle, Search, X, LocateFixed } from 'lucide-react';
+import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -39,6 +39,10 @@ interface StrayReport {
   photo_url: string | null;
   status: string | null;
   created_at: string;
+  taken_to_clinic: boolean | null;
+  clinic_name: string | null;
+  clinic_notes: string | null;
+  rescue_date: string | null;
 }
 
 interface SelectedReport {
@@ -426,6 +430,47 @@ const ReportsMap = () => {
                     <span className="text-muted-foreground">تاريخ البلاغ:</span>
                     <span dir="ltr">{new Date((selectedReport.data as StrayReport).created_at).toLocaleDateString('ar-SA')}</span>
                   </div>
+                  
+                  {/* Clinic Status */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">حالة الإنقاذ:</span>
+                    {(selectedReport.data as StrayReport).taken_to_clinic ? (
+                      <span className="flex items-center gap-1 text-green-600 text-xs">
+                        <CheckCircle2 className="w-3 h-3" />
+                        تم أخذه لعيادة
+                      </span>
+                    ) : (
+                      <span className="text-yellow-600 text-xs">لم يتم إنقاذه بعد</span>
+                    )}
+                  </div>
+
+                  {/* Clinic Info */}
+                  {(selectedReport.data as StrayReport).taken_to_clinic && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Hospital className="w-4 h-4 text-green-600" />
+                        <span className="font-semibold text-green-700 dark:text-green-400 text-sm">معلومات العيادة</span>
+                      </div>
+                      {(selectedReport.data as StrayReport).clinic_name && (
+                        <p className="text-sm mb-1">
+                          <span className="text-muted-foreground">الاسم: </span>
+                          {(selectedReport.data as StrayReport).clinic_name}
+                        </p>
+                      )}
+                      {(selectedReport.data as StrayReport).rescue_date && (
+                        <p className="text-sm mb-1">
+                          <span className="text-muted-foreground">تاريخ الإنقاذ: </span>
+                          <span dir="ltr">{new Date((selectedReport.data as StrayReport).rescue_date!).toLocaleDateString('ar-SA')}</span>
+                        </p>
+                      )}
+                      {(selectedReport.data as StrayReport).clinic_notes && (
+                        <p className="text-xs text-muted-foreground mt-2 bg-white/50 dark:bg-black/20 p-2 rounded">
+                          {(selectedReport.data as StrayReport).clinic_notes}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {(selectedReport.data as StrayReport).description && (
                     <p className="text-muted-foreground text-xs mt-2">
                       {(selectedReport.data as StrayReport).description}
