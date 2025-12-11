@@ -168,7 +168,14 @@
     "services": "Services",
     "selectServices": "Select services offered by the clinic",
     "prices": "Prices",
-    "setPrices": "Set prices for selected services"
+    "setPrices": "Set prices for selected services",
+    "images": "Images",
+    "logo": "Clinic Logo",
+    "logoHint": "Add your clinic logo for easy recognition",
+    "uploadLogo": "Upload Logo",
+    "clinicPhoto": "Clinic Photo",
+    "clickToUpload": "Click to upload image",
+    "imageUploaded": "Image uploaded successfully"
   },
   "shelter": {
     "dashboard": "Shelter Dashboard",

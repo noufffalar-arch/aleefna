@@ -24,6 +24,8 @@ interface Clinic {
   services: string[] | null;
   doctor_name: string | null;
   prices: unknown;
+  logo_url: string | null;
+  photo_url: string | null;
 }
 
 interface Appointment {
@@ -192,10 +194,22 @@ const ClinicDashboard = () => {
       {/* Clinic Info Card */}
       {clinic ? (
         <div className="px-6 mb-4">
+          {/* Clinic Photo Banner */}
+          {clinic.photo_url && (
+            <div className="w-full h-32 rounded-xl overflow-hidden mb-4">
+              <img src={clinic.photo_url} alt={clinic.name} className="w-full h-full object-cover" />
+            </div>
+          )}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Stethoscope className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-3 text-lg">
+                {clinic.logo_url ? (
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-secondary shrink-0">
+                    <img src={clinic.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <Stethoscope className="w-5 h-5 text-primary" />
+                )}
                 {clinic.name}
               </CardTitle>
             </CardHeader>
