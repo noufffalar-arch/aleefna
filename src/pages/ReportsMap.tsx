@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2, PartyPopper } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2, PartyPopper, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -12,6 +13,30 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// Notification sound utility
+const playNotificationSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.4);
+  } catch (e) {
+    console.log('Could not play notification sound:', e);
+  }
+};
 
 // Fix default marker icon issue in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -105,10 +130,53 @@ const ReportsMap = () => {
   const [resolutionType, setResolutionType] = useState<string>('returned_to_owner');
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [regionFilter, setRegionFilter] = useState<string>('all');
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const userMarkerRef = useRef<L.Marker | null>(null);
+
+  // Extract unique regions from reports
+  const regions = useMemo(() => {
+    const allLocations = [
+      ...missingReports.map(r => r.last_seen_location),
+      ...strayReports.map(r => r.location_text)
+    ];
+    
+    // Extract city/area names (assuming format includes city names)
+    const uniqueRegions = new Set<string>();
+    allLocations.forEach(loc => {
+      if (loc) {
+        // Try to extract main area/city from location text
+        const parts = loc.split(/[،,\-]/);
+        if (parts.length > 0) {
+          const region = parts[0].trim();
+          if (region.length > 2) uniqueRegions.add(region);
+        }
+      }
+    });
+    return Array.from(uniqueRegions).sort();
+  }, [missingReports, strayReports]);
+
+  // Filter reports by region
+  const filteredMissingReports = useMemo(() => {
+    if (regionFilter === 'all') return missingReports;
+    return missingReports.filter(r => r.last_seen_location?.includes(regionFilter));
+  }, [missingReports, regionFilter]);
+
+  const filteredStrayReports = useMemo(() => {
+    if (regionFilter === 'all') return strayReports;
+    return strayReports.filter(r => r.location_text?.includes(regionFilter));
+  }, [strayReports, regionFilter]);
+
+  // Play notification with sound
+  const showNotificationWithSound = useCallback((title: string, description: string, variant?: 'default' | 'destructive') => {
+    if (soundEnabled) {
+      playNotificationSound();
+    }
+    toast({ title, description, variant });
+  }, [soundEnabled, toast]);
 
   const handleMarkAsFound = async () => {
     if (!selectedReport || selectedReport.type !== 'missing') return;
@@ -207,10 +275,10 @@ const ReportsMap = () => {
             .then(({ data }) => {
               if (data) {
                 setMissingReports(prev => [data, ...prev]);
-                toast({
-                  title: '🔔 بلاغ جديد!',
-                  description: `تم الإبلاغ عن حيوان مفقود: ${data.pets?.name || 'حيوان أليف'}`,
-                });
+                showNotificationWithSound(
+                  '🔔 بلاغ جديد!',
+                  `تم الإبلاغ عن حيوان مفقود: ${data.pets?.name || 'حيوان أليف'}`
+                );
               }
             });
         }
@@ -233,11 +301,11 @@ const ReportsMap = () => {
           
           const animalLabel = newReport.animal_type === 'cat' ? 'قطة' : 
                              newReport.animal_type === 'dog' ? 'كلب' : 'حيوان';
-          toast({
-            title: '⚠️ بلاغ حيوان ضال!',
-            description: `تم الإبلاغ عن ${animalLabel} ضال في ${newReport.location_text}`,
-            variant: newReport.danger_level === 'high' ? 'destructive' : 'default',
-          });
+          showNotificationWithSound(
+            '⚠️ بلاغ حيوان ضال!',
+            `تم الإبلاغ عن ${animalLabel} ضال في ${newReport.location_text}`,
+            newReport.danger_level === 'high' ? 'destructive' : 'default'
+          );
         }
       )
       .subscribe();
@@ -246,7 +314,7 @@ const ReportsMap = () => {
       supabase.removeChannel(missingChannel);
       supabase.removeChannel(strayChannel);
     };
-  }, [toast]);
+  }, [showNotificationWithSound]);
 
   // Initialize map
   useEffect(() => {
@@ -313,9 +381,9 @@ const ReportsMap = () => {
       }
     };
 
-    // Add missing pet markers
+    // Add missing pet markers (using filtered reports)
     if (filter === 'all' || filter === 'missing') {
-      missingReports.forEach(report => {
+      filteredMissingReports.forEach(report => {
         if (report.latitude && report.longitude) {
           const marker = L.marker([report.latitude, report.longitude], { icon: missingPetIcon })
             .addTo(mapRef.current!)
@@ -332,9 +400,9 @@ const ReportsMap = () => {
       });
     }
 
-    // Add stray animal markers
+    // Add stray animal markers (using filtered reports)
     if (filter === 'all' || filter === 'stray') {
-      strayReports.forEach(report => {
+      filteredStrayReports.forEach(report => {
         if (report.latitude && report.longitude) {
           const marker = L.marker([report.latitude, report.longitude], { icon: strayAnimalIcon })
             .addTo(mapRef.current!)
@@ -350,7 +418,7 @@ const ReportsMap = () => {
         }
       });
     }
-  }, [missingReports, strayReports, filter, t]);
+  }, [filteredMissingReports, filteredStrayReports, filter, t]);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -422,32 +490,63 @@ const ReportsMap = () => {
       </div>
 
       {/* Filter Buttons */}
-      <div className="px-4 py-3 flex gap-2 bg-background border-b z-10">
-        <Button
-          variant={filter === 'all' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('all')}
-        >
-          الكل ({missingReports.length + strayReports.length})
-        </Button>
-        <Button
-          variant={filter === 'missing' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('missing')}
-          className="gap-1"
-        >
-          <Search className="w-3 h-3" />
-          مفقود ({missingReports.length})
-        </Button>
-        <Button
-          variant={filter === 'stray' ? 'destructive' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('stray')}
-          className="gap-1"
-        >
-          <AlertTriangle className="w-3 h-3" />
-          ضال ({strayReports.length})
-        </Button>
+      <div className="px-4 py-3 flex flex-col gap-2 bg-background border-b z-10">
+        <div className="flex gap-2 items-center">
+          <Button
+            variant={filter === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFilter('all')}
+          >
+            الكل ({filteredMissingReports.length + filteredStrayReports.length})
+          </Button>
+          <Button
+            variant={filter === 'missing' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFilter('missing')}
+            className="gap-1"
+          >
+            <Search className="w-3 h-3" />
+            مفقود ({filteredMissingReports.length})
+          </Button>
+          <Button
+            variant={filter === 'stray' ? 'destructive' : 'outline'}
+            size="sm"
+            onClick={() => setFilter('stray')}
+            className="gap-1"
+          >
+            <AlertTriangle className="w-3 h-3" />
+            ضال ({filteredStrayReports.length})
+          </Button>
+          
+          {/* Sound Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="ms-auto"
+            title={soundEnabled ? 'إيقاف الصوت' : 'تشغيل الصوت'}
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
+          </Button>
+        </div>
+        
+        {/* Region Filter */}
+        {regions.length > 0 && (
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-muted-foreground" />
+            <Select value={regionFilter} onValueChange={setRegionFilter}>
+              <SelectTrigger className="h-8 text-xs flex-1">
+                <SelectValue placeholder="اختر المنطقة" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">جميع المناطق</SelectItem>
+                {regions.map(region => (
+                  <SelectItem key={region} value={region}>{region}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* Map */}
