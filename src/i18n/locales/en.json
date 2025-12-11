@@ -30,7 +30,15 @@
     "loginSuccess": "Login successful",
     "loginError": "Login error",
     "signupError": "Signup error",
-    "termsAgreement": "By continuing, you agree to the Terms and Conditions and Privacy Policy"
+    "termsAgreement": "By continuing, you agree to the Terms and Conditions and Privacy Policy",
+    "continueAsGuest": "Continue as Guest"
+  },
+  "guest": {
+    "guest": "Guest",
+    "welcomeMessage": "Browse our available services",
+    "requireAuth": "Please sign in to use this service",
+    "signUpPrompt": "Sign up for full access",
+    "signUpBenefits": "Add your pets, book appointments and more"
   },
   "userTypes": {
     "owner": "Pet Owner",

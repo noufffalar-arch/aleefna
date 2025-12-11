@@ -18,12 +18,15 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  isGuest: boolean;
   signUp: (email: string, password: string, fullName: string, role: string, phone?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   mockNafathLogin: () => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
+  enterGuestMode: () => void;
+  exitGuestMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(() => localStorage.getItem('isGuest') === 'true');
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -119,6 +123,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
+    exitGuestMode();
+  };
+
+  const enterGuestMode = () => {
+    setIsGuest(true);
+    localStorage.setItem('isGuest', 'true');
+  };
+
+  const exitGuestMode = () => {
+    setIsGuest(false);
+    localStorage.removeItem('isGuest');
   };
 
   const resetPassword = async (email: string) => {
@@ -164,12 +179,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         profile,
         loading,
+        isGuest,
         signUp,
         signIn,
         signOut,
         resetPassword,
         mockNafathLogin,
         refreshProfile,
+        enterGuestMode,
+        exitGuestMode,
       }}
     >
       {children}

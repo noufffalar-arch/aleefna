@@ -25,7 +25,7 @@ interface AdoptionPet {
 const Adoption = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isGuest, exitGuestMode } = useAuth();
   const [pets, setPets] = useState<AdoptionPet[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,8 +44,9 @@ const Adoption = () => {
   };
 
   const handleAdoptionRequest = async (petId: string, shelterId: string) => {
-    if (!user) {
-      toast.error('الرجاء تسجيل الدخول أولاً');
+    if (!user || isGuest) {
+      toast.info(t('guest.requireAuth'));
+      if (isGuest) exitGuestMode();
       navigate('/auth');
       return;
     }
