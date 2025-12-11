@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2, PartyPopper } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -25,6 +30,9 @@ interface MissingReport {
   description: string | null;
   status: string | null;
   contact_phone: string;
+  resolution_type: string | null;
+  resolution_notes: string | null;
+  resolved_at: string | null;
   pets?: { name: string; species: string; photo_url: string | null };
 }
 
@@ -77,16 +85,60 @@ const strayAnimalIcon = L.divIcon({
 const ReportsMap = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [missingReports, setMissingReports] = useState<MissingReport[]>([]);
   const [strayReports, setStrayReports] = useState<StrayReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<SelectedReport | null>(null);
   const [filter, setFilter] = useState<'all' | 'missing' | 'stray'>('all');
   const [loading, setLoading] = useState(true);
   const [locating, setLocating] = useState(false);
+  const [foundDialogOpen, setFoundDialogOpen] = useState(false);
+  const [resolutionType, setResolutionType] = useState<string>('returned_to_owner');
+  const [resolutionNotes, setResolutionNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const userMarkerRef = useRef<L.Marker | null>(null);
+
+  const handleMarkAsFound = async () => {
+    if (!selectedReport || selectedReport.type !== 'missing') return;
+    
+    setSubmitting(true);
+    const report = selectedReport.data as MissingReport;
+    
+    const { error } = await supabase
+      .from('missing_reports')
+      .update({
+        status: 'found',
+        resolution_type: resolutionType,
+        resolution_notes: resolutionNotes,
+        resolved_at: new Date().toISOString(),
+      })
+      .eq('id', report.id);
+
+    if (error) {
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تحديث البلاغ',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'تم بنجاح',
+        description: 'تم تحديث حالة البلاغ - تم إيجاد الحيوان',
+      });
+      // Update local state
+      setMissingReports(prev => 
+        prev.map(r => r.id === report.id ? { ...r, status: 'found', resolution_type: resolutionType, resolution_notes: resolutionNotes } : r)
+      );
+      setFoundDialogOpen(false);
+      setSelectedReport(null);
+      setResolutionType('returned_to_owner');
+      setResolutionNotes('');
+    }
+    setSubmitting(false);
+  };
 
   const centerOnUserLocation = () => {
     if (!navigator.geolocation || !mapRef.current) return;
@@ -406,16 +458,65 @@ const ReportsMap = () => {
                     <span className="text-muted-foreground">آخر مشاهدة:</span>
                     <span dir="ltr">{new Date((selectedReport.data as MissingReport).last_seen_date).toLocaleDateString('ar-SA')}</span>
                   </div>
+                  
+                  {/* Show status */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">الحالة:</span>
+                    {(selectedReport.data as MissingReport).status === 'found' ? (
+                      <span className="flex items-center gap-1 text-green-600 text-xs">
+                        <CheckCircle2 className="w-3 h-3" />
+                        تم إيجاده
+                      </span>
+                    ) : (
+                      <span className="text-yellow-600 text-xs">مفقود</span>
+                    )}
+                  </div>
+
+                  {/* Resolution info if found */}
+                  {(selectedReport.data as MissingReport).status === 'found' && (selectedReport.data as MissingReport).resolution_type && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <PartyPopper className="w-4 h-4 text-green-600" />
+                        <span className="font-semibold text-green-700 dark:text-green-400 text-sm">تم إيجاد الحيوان!</span>
+                      </div>
+                      <p className="text-sm mb-1">
+                        <span className="text-muted-foreground">النتيجة: </span>
+                        {(selectedReport.data as MissingReport).resolution_type === 'returned_to_owner' && 'تم إعادته لصاحبه'}
+                        {(selectedReport.data as MissingReport).resolution_type === 'taken_to_clinic' && 'تم أخذه لعيادة بيطرية'}
+                        {(selectedReport.data as MissingReport).resolution_type === 'taken_to_shelter' && 'تم أخذه لجمعية حيوان'}
+                      </p>
+                      {(selectedReport.data as MissingReport).resolution_notes && (
+                        <p className="text-xs text-muted-foreground mt-2 bg-white/50 dark:bg-black/20 p-2 rounded">
+                          {(selectedReport.data as MissingReport).resolution_notes}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {(selectedReport.data as MissingReport).description && (
                     <p className="text-muted-foreground text-xs mt-2">
                       {(selectedReport.data as MissingReport).description}
                     </p>
                   )}
-                  <Button className="w-full mt-3" asChild>
-                    <a href={`tel:${(selectedReport.data as MissingReport).contact_phone}`}>
-                      📞 اتصل بالمالك
-                    </a>
-                  </Button>
+                  
+                  <div className="flex flex-col gap-2 mt-3">
+                    <Button className="w-full" asChild>
+                      <a href={`tel:${(selectedReport.data as MissingReport).contact_phone}`}>
+                        📞 اتصل بالمالك
+                      </a>
+                    </Button>
+                    
+                    {(selectedReport.data as MissingReport).status !== 'found' && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-green-500 text-green-600 hover:bg-green-50"
+                        onClick={() => setFoundDialogOpen(true)}
+                      >
+                        <CheckCircle2 className="w-4 h-4 ml-2" />
+                        تم إيجاد الحيوان
+                      </Button>
+                    )}
+                  </div>
                 </>
               ) : (
                 <>
@@ -482,6 +583,66 @@ const ReportsMap = () => {
           </div>
         </div>
       )}
+
+      {/* Found Dialog */}
+      <Dialog open={foundDialogOpen} onOpenChange={setFoundDialogOpen}>
+        <DialogContent className="max-w-sm" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PartyPopper className="w-5 h-5 text-green-600" />
+              تم إيجاد الحيوان
+            </DialogTitle>
+            <DialogDescription>
+              يرجى تحديد ما حدث للحيوان المفقود
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <RadioGroup value={resolutionType} onValueChange={setResolutionType}>
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <RadioGroupItem value="returned_to_owner" id="returned" />
+                <Label htmlFor="returned" className="cursor-pointer">تم إعادته لصاحبه</Label>
+              </div>
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <RadioGroupItem value="taken_to_clinic" id="clinic" />
+                <Label htmlFor="clinic" className="cursor-pointer">تم أخذه لعيادة بيطرية</Label>
+              </div>
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <RadioGroupItem value="taken_to_shelter" id="shelter" />
+                <Label htmlFor="shelter" className="cursor-pointer">تم أخذه لجمعية حيوان</Label>
+              </div>
+            </RadioGroup>
+            
+            <div className="space-y-2">
+              <Label htmlFor="notes">ملاحظات إضافية (اختياري)</Label>
+              <Textarea
+                id="notes"
+                placeholder="أضف أي ملاحظات أو تفاصيل..."
+                value={resolutionNotes}
+                onChange={(e) => setResolutionNotes(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => setFoundDialogOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button 
+              className="flex-1 bg-green-600 hover:bg-green-700"
+              onClick={handleMarkAsFound}
+              disabled={submitting}
+            >
+              {submitting ? 'جاري الحفظ...' : 'تأكيد'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
