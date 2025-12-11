@@ -210,6 +210,8 @@
     "roleShelter": "Animal Shelter",
     "roleClinic": "Veterinary Clinic",
     "roleStore": "Pet Store",
-    "roleGovernment": "Government Entity"
+    "roleGovernment": "Government Entity",
+    "actions": "Actions",
+    "roleUpdated": "Role updated successfully"
   }
 }
