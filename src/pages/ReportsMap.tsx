@@ -185,40 +185,46 @@ const ReportsMap = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {filteredMissingReports.map(report => (
-              <Marker
-                key={`missing-${report.id}`}
-                position={[report.latitude!, report.longitude!]}
-                icon={missingPetIcon}
-                eventHandlers={{
-                  click: () => setSelectedReport({ type: 'missing', data: report }),
-                }}
-              >
-                <Popup>
-                  <div className="text-center p-1">
-                    <p className="font-bold">{report.pets?.name || 'حيوان مفقود'}</p>
-                    <p className="text-xs text-gray-500">{report.last_seen_location}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-            {filteredStrayReports.map(report => (
-              <Marker
-                key={`stray-${report.id}`}
-                position={[report.latitude!, report.longitude!]}
-                icon={strayAnimalIcon}
-                eventHandlers={{
-                  click: () => setSelectedReport({ type: 'stray', data: report }),
-                }}
-              >
-                <Popup>
-                  <div className="text-center p-1">
-                    <p className="font-bold">{getAnimalTypeLabel(report.animal_type)} ضال</p>
-                    <p className="text-xs text-gray-500">{report.location_text}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+            <>
+              {filteredMissingReports
+                .filter(report => report.latitude && report.longitude)
+                .map(report => (
+                  <Marker
+                    key={`missing-${report.id}`}
+                    position={[report.latitude!, report.longitude!]}
+                    icon={missingPetIcon}
+                    eventHandlers={{
+                      click: () => setSelectedReport({ type: 'missing', data: report }),
+                    }}
+                  >
+                    <Popup>
+                      <div className="text-center p-1">
+                        <p className="font-bold">{report.pets?.name || 'حيوان مفقود'}</p>
+                        <p className="text-xs text-gray-500">{report.last_seen_location}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+              {filteredStrayReports
+                .filter(report => report.latitude && report.longitude)
+                .map(report => (
+                  <Marker
+                    key={`stray-${report.id}`}
+                    position={[report.latitude!, report.longitude!]}
+                    icon={strayAnimalIcon}
+                    eventHandlers={{
+                      click: () => setSelectedReport({ type: 'stray', data: report }),
+                    }}
+                  >
+                    <Popup>
+                      <div className="text-center p-1">
+                        <p className="font-bold">{getAnimalTypeLabel(report.animal_type)} ضال</p>
+                        <p className="text-xs text-gray-500">{report.location_text}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+            </>
           </MapContainer>
         )}
 
