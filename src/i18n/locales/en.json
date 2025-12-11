@@ -194,5 +194,22 @@
     "submit": "Submit",
     "viewAll": "View All",
     "noData": "No data"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "totalUsers": "Total Registered Users",
+    "usersList": "Users List",
+    "filterByRole": "Filter by role",
+    "allRoles": "All Roles",
+    "name": "Name",
+    "email": "Email",
+    "userType": "User Type",
+    "registrationDate": "Registration Date",
+    "noUsers": "No users found",
+    "roleOwner": "Pet Owner",
+    "roleShelter": "Animal Shelter",
+    "roleClinic": "Veterinary Clinic",
+    "roleStore": "Pet Store",
+    "roleGovernment": "Government Entity"
   }
 }

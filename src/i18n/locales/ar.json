@@ -194,5 +194,22 @@
     "submit": "إرسال",
     "viewAll": "عرض الكل",
     "noData": "لا توجد بيانات"
+  },
+  "admin": {
+    "title": "لوحة تحكم المسؤول",
+    "totalUsers": "إجمالي المستخدمين المسجلين",
+    "usersList": "قائمة المستخدمين",
+    "filterByRole": "تصفية حسب النوع",
+    "allRoles": "جميع الأنواع",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "userType": "نوع الحساب",
+    "registrationDate": "تاريخ التسجيل",
+    "noUsers": "لا يوجد مستخدمون",
+    "roleOwner": "مالك حيوان",
+    "roleShelter": "جمعية رعاية حيوان",
+    "roleClinic": "عيادة بيطرية",
+    "roleStore": "متجر حيوانات",
+    "roleGovernment": "جهة حكومية"
   }
 }

@@ -11,6 +11,7 @@ import LanguageSelect from "./pages/LanguageSelect";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ShelterDashboard from "./pages/ShelterDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
 import Services from "./pages/Services";
 import Store from "./pages/Store";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/shelter-dashboard" element={<ShelterDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/services" element={<Services />} />
             <Route path="/store" element={<Store />} />
