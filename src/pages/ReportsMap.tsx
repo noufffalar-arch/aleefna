@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2, PartyPopper } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -29,10 +30,16 @@ interface MissingReport {
   longitude: number | null;
   description: string | null;
   status: string | null;
-  contact_phone: string;
-  resolution_type: string | null;
-  resolution_notes: string | null;
-  resolved_at: string | null;
+  contact_phone?: string; // Optional - only available for authenticated users
+  resolution_type?: string | null;
+  resolution_notes?: string | null;
+  resolved_at?: string | null;
+  created_at?: string;
+  // From view
+  pet_name?: string;
+  pet_species?: string;
+  pet_photo_url?: string | null;
+  // From join
   pets?: { name: string; species: string; photo_url: string | null };
 }
 
@@ -86,6 +93,8 @@ const ReportsMap = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isGuest } = useAuth();
+  const isAuthenticated = !!user && !isGuest;
   const [missingReports, setMissingReports] = useState<MissingReport[]>([]);
   const [strayReports, setStrayReports] = useState<StrayReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<SelectedReport | null>(null);
@@ -285,19 +294,42 @@ const ReportsMap = () => {
   const fetchReports = async () => {
     setLoading(true);
     
-    const [missingRes, strayRes] = await Promise.all([
-      supabase
-        .from('missing_reports')
-        .select('*, pets(name, species, photo_url)')
-        .eq('status', 'active'),
-      supabase
-        .from('stray_reports')
-        .select('*')
-        .in('status', ['new', 'in_progress']),
-    ]);
+    if (isAuthenticated) {
+      // Authenticated users get full data including phone numbers
+      const [missingRes, strayRes] = await Promise.all([
+        supabase
+          .from('missing_reports')
+          .select('*, pets(name, species, photo_url)')
+          .eq('status', 'active'),
+        supabase
+          .from('stray_reports')
+          .select('*')
+          .in('status', ['new', 'in_progress']),
+      ]);
 
-    if (missingRes.data) setMissingReports(missingRes.data);
-    if (strayRes.data) setStrayReports(strayRes.data);
+      if (missingRes.data) setMissingReports(missingRes.data);
+      if (strayRes.data) setStrayReports(strayRes.data as StrayReport[]);
+    } else {
+      // Guests use public views (no phone numbers)
+      const [missingRes, strayRes] = await Promise.all([
+        supabase
+          .from('missing_reports_map')
+          .select('*'),
+        supabase
+          .from('stray_reports_map')
+          .select('*'),
+      ]);
+
+      if (missingRes.data) {
+        // Transform view data to match interface
+        const transformedMissing = missingRes.data.map((r: any) => ({
+          ...r,
+          pets: r.pet_name ? { name: r.pet_name, species: r.pet_species, photo_url: r.pet_photo_url } : undefined
+        }));
+        setMissingReports(transformedMissing);
+      }
+      if (strayRes.data) setStrayReports(strayRes.data as StrayReport[]);
+    }
     setLoading(false);
   };
 
@@ -500,13 +532,23 @@ const ReportsMap = () => {
                   )}
                   
                   <div className="flex flex-col gap-2 mt-3">
-                    <Button className="w-full" asChild>
-                      <a href={`tel:${(selectedReport.data as MissingReport).contact_phone}`}>
-                        📞 اتصل بالمالك
-                      </a>
-                    </Button>
+                    {isAuthenticated && (selectedReport.data as MissingReport).contact_phone ? (
+                      <Button className="w-full" asChild>
+                        <a href={`tel:${(selectedReport.data as MissingReport).contact_phone}`}>
+                          📞 اتصل بالمالك
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        onClick={() => navigate('/auth')}
+                      >
+                        🔒 سجل دخولك لرؤية معلومات التواصل
+                      </Button>
+                    )}
                     
-                    {(selectedReport.data as MissingReport).status !== 'found' && (
+                    {isAuthenticated && (selectedReport.data as MissingReport).status !== 'found' && (
                       <Button 
                         variant="outline" 
                         className="w-full border-green-500 text-green-600 hover:bg-green-50"
