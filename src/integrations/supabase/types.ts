@@ -333,6 +333,10 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           pet_id: string
+          resolution_notes: string | null
+          resolution_type: string | null
+          resolved_at: string | null
+          resolved_by: string | null
           status: string | null
           updated_at: string
           user_id: string
@@ -347,6 +351,10 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           pet_id: string
+          resolution_notes?: string | null
+          resolution_type?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           status?: string | null
           updated_at?: string
           user_id: string
@@ -361,6 +369,10 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           pet_id?: string
+          resolution_notes?: string | null
+          resolution_type?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           status?: string | null
           updated_at?: string
           user_id?: string
