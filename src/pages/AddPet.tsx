@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 const AddPet = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [species, setSpecies] = useState('');
@@ -23,6 +23,9 @@ const AddPet = () => {
   const [color, setColor] = useState('');
   const [microchipId, setMicrochipId] = useState('');
   const [medicalNotes, setMedicalNotes] = useState('');
+
+  // Check if user is a shelter - their pets should automatically be for adoption
+  const isShelter = profile?.role === 'shelter';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +45,8 @@ const AddPet = () => {
       color: color || null,
       microchip_id: microchipId || null,
       medical_notes: medicalNotes || null,
+      // Shelter pets are automatically marked for adoption
+      is_for_adoption: isShelter,
     });
 
     setLoading(false);
@@ -49,7 +54,7 @@ const AddPet = () => {
       toast.error(t('common.error'));
     } else {
       toast.success(t('common.success'));
-      navigate('/dashboard');
+      navigate(isShelter ? '/shelter-dashboard' : '/dashboard');
     }
   };
 
