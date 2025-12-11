@@ -9,11 +9,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowRight, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 interface Pet {
   id: string;
   name: string;
 }
+
+// Zod validation schema
+const missingReportSchema = z.object({
+  petId: z.string().uuid('الرجاء اختيار الحيوان'),
+  lastSeenDate: z.string().min(1, 'الرجاء تحديد تاريخ ووقت آخر مشاهدة'),
+  lastSeenLocation: z.string()
+    .trim()
+    .min(5, 'الموقع يجب أن يكون 5 أحرف على الأقل')
+    .max(500, 'الموقع يجب أن لا يتجاوز 500 حرف'),
+  contactPhone: z.string()
+    .regex(/^05\d{8}$/, 'رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام'),
+  description: z.string().max(2000, 'الوصف يجب أن لا يتجاوز 2000 حرف').optional(),
+});
 
 const MissingReport = () => {
   const { t } = useTranslation();
@@ -26,6 +40,7 @@ const MissingReport = () => {
   const [lastSeenLocation, setLastSeenLocation] = useState('');
   const [description, setDescription] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (user) fetchPets();
@@ -38,25 +53,44 @@ const MissingReport = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPet) {
-      toast.error('الرجاء اختيار الحيوان');
+    setErrors({});
+
+    // Validate with Zod
+    const result = missingReportSchema.safeParse({
+      petId: selectedPet,
+      lastSeenDate,
+      lastSeenLocation,
+      contactPhone,
+      description: description || undefined,
+    });
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast.error('الرجاء تصحيح الأخطاء في النموذج');
       return;
     }
+
     setLoading(true);
     
     const { error } = await supabase.from('missing_reports').insert({
       user_id: user!.id,
-      pet_id: selectedPet,
-      last_seen_date: new Date(lastSeenDate).toISOString(),
-      last_seen_location: lastSeenLocation,
-      description,
-      contact_phone: contactPhone,
-      latitude: 26.4207, // Dammam coordinates
+      pet_id: result.data.petId,
+      last_seen_date: new Date(result.data.lastSeenDate).toISOString(),
+      last_seen_location: result.data.lastSeenLocation,
+      description: result.data.description || null,
+      contact_phone: result.data.contactPhone,
+      latitude: 26.4207,
       longitude: 50.0888,
     });
 
     // Mark pet as missing
-    await supabase.from('pets').update({ is_missing: true }).eq('id', selectedPet);
+    await supabase.from('pets').update({ is_missing: true }).eq('id', result.data.petId);
 
     setLoading(false);
     if (error) {
@@ -82,7 +116,7 @@ const MissingReport = () => {
         <div>
           <label className="aleefna-label">{t('missing.selectPet')}</label>
           <Select value={selectedPet} onValueChange={setSelectedPet}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className={`w-full ${errors.petId ? 'border-destructive' : ''}`}>
               <SelectValue placeholder="اختر الحيوان" />
             </SelectTrigger>
             <SelectContent>
@@ -91,6 +125,7 @@ const MissingReport = () => {
               ))}
             </SelectContent>
           </Select>
+          {errors.petId && <p className="text-sm text-destructive mt-1">{errors.petId}</p>}
         </div>
 
         <div>
@@ -99,10 +134,10 @@ const MissingReport = () => {
             type="datetime-local" 
             value={lastSeenDate} 
             onChange={(e) => setLastSeenDate(e.target.value)}
-            className="text-start"
+            className={`text-start ${errors.lastSeenDate ? 'border-destructive' : ''}`}
             dir="ltr"
-            required 
           />
+          {errors.lastSeenDate && <p className="text-sm text-destructive mt-1">{errors.lastSeenDate}</p>}
         </div>
 
         <div>
@@ -112,8 +147,9 @@ const MissingReport = () => {
             value={lastSeenLocation} 
             onChange={(e) => setLastSeenLocation(e.target.value)}
             placeholder="مثال: حي الخالدية الشمالية، الدمام"
-            required 
+            className={errors.lastSeenLocation ? 'border-destructive' : ''}
           />
+          {errors.lastSeenLocation && <p className="text-sm text-destructive mt-1">{errors.lastSeenLocation}</p>}
         </div>
 
         <div>
@@ -123,7 +159,9 @@ const MissingReport = () => {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="وصف إضافي للحيوان أو الظروف"
             rows={3}
+            className={errors.description ? 'border-destructive' : ''}
           />
+          {errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
         </div>
 
         <div>
@@ -133,10 +171,10 @@ const MissingReport = () => {
             value={contactPhone} 
             onChange={(e) => setContactPhone(e.target.value)}
             placeholder="05xxxxxxxx"
-            className="text-start"
+            className={`text-start ${errors.contactPhone ? 'border-destructive' : ''}`}
             dir="ltr"
-            required 
           />
+          {errors.contactPhone && <p className="text-sm text-destructive mt-1">{errors.contactPhone}</p>}
         </div>
 
         <Button type="submit" className="w-full mt-6" disabled={loading}>
