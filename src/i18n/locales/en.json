@@ -211,6 +211,7 @@
     "roleClinic": "Veterinary Clinic",
     "roleStore": "Pet Store",
     "roleGovernment": "Government Entity",
+    "roleAdmin": "Admin",
     "actions": "Actions",
     "roleUpdated": "Role updated successfully"
   }

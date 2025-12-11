@@ -211,6 +211,7 @@
     "roleClinic": "عيادة بيطرية",
     "roleStore": "متجر حيوانات",
     "roleGovernment": "جهة حكومية",
+    "roleAdmin": "مسؤول",
     "actions": "الإجراءات",
     "roleUpdated": "تم تحديث الدور بنجاح"
   }

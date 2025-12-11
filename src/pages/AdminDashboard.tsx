@@ -93,6 +93,7 @@ const AdminDashboard = () => {
       clinic: t('admin.roleClinic'),
       store: t('admin.roleStore'),
       government: t('admin.roleGovernment'),
+      admin: t('admin.roleAdmin'),
     };
     return roleLabels[role] || role;
   };
@@ -144,7 +145,7 @@ const AdminDashboard = () => {
   }
 
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
-  const roles: UserRole[] = ['owner', 'shelter', 'clinic', 'store', 'government'];
+  const roles: UserRole[] = ['owner', 'shelter', 'clinic', 'store', 'government', 'admin'];
 
   return (
     <div className="min-h-screen bg-background" dir={isRtl ? 'rtl' : 'ltr'}>
