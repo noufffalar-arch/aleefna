@@ -7,7 +7,7 @@ import { useRTL } from '@/hooks/useRTL';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2, Landmark, Store, AlertTriangle, User, Stethoscope } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2, Landmark, Store, AlertTriangle, User, Stethoscope, Search } from 'lucide-react';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminPetsTab from '@/components/admin/AdminPetsTab';
 import AdminSheltersTab from '@/components/admin/AdminSheltersTab';
@@ -15,6 +15,7 @@ import AdminGovernmentTab from '@/components/admin/AdminGovernmentTab';
 import AdminStoresTab from '@/components/admin/AdminStoresTab';
 import AdminStrayReportsTab from '@/components/admin/AdminStrayReportsTab';
 import AdminClinicsTab from '@/components/admin/AdminClinicsTab';
+import AdminMissingReportsTab from '@/components/admin/AdminMissingReportsTab';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
@@ -155,6 +156,10 @@ const AdminDashboard = () => {
                 <AlertTriangle className="h-4 w-4" />
                 <span>{t('admin.strayTab')}</span>
               </TabsTrigger>
+              <TabsTrigger value="missing" className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                <span>المفقودات</span>
+              </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -190,6 +195,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="stray">
             <AdminStrayReportsTab isRtl={isRtl} />
+          </TabsContent>
+
+          <TabsContent value="missing">
+            <AdminMissingReportsTab isRtl={isRtl} />
           </TabsContent>
         </Tabs>
       </div>
