@@ -7,7 +7,7 @@ import { useRTL } from '@/hooks/useRTL';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2, Landmark, Store, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2, Landmark, Store, AlertTriangle, User } from 'lucide-react';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminPetsTab from '@/components/admin/AdminPetsTab';
 import AdminSheltersTab from '@/components/admin/AdminSheltersTab';
@@ -96,19 +96,29 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="bg-primary text-primary-foreground p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/dashboard')}
+              className="text-primary-foreground hover:bg-primary/80"
+            >
+              <BackArrow className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <Shield className="h-6 w-6" />
+              <h1 className="text-xl font-bold">{t('admin.title')}</h1>
+            </div>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/profile')}
             className="text-primary-foreground hover:bg-primary/80"
           >
-            <BackArrow className="h-5 w-5" />
+            <User className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6" />
-            <h1 className="text-xl font-bold">{t('admin.title')}</h1>
-          </div>
         </div>
       </div>
 
