@@ -148,7 +148,9 @@
     "availableForAdoption": "Available for Adoption",
     "clinicSettings": "Clinic Settings",
     "settingsHint": "Update your clinic information, services, and prices",
-    "editClinicInfo": "Edit Clinic Info"
+    "editClinicInfo": "Edit Clinic Info",
+    "doctorsManagement": "Doctors & Appointments",
+    "doctorsHint": "Add doctors and set available appointment slots"
   },
   "clinicSettings": {
     "title": "Clinic Settings",
@@ -176,6 +178,35 @@
     "clinicPhoto": "Clinic Photo",
     "clickToUpload": "Click to upload image",
     "imageUploaded": "Image uploaded successfully"
+  },
+  "doctors": {
+    "title": "Doctors & Appointments Management",
+    "doctorsList": "Doctors List",
+    "addDoctor": "Add Doctor",
+    "doctorName": "Doctor Name",
+    "doctorNamePlaceholder": "Enter doctor name",
+    "specialization": "Specialization",
+    "specializationPlaceholder": "e.g. General Practice",
+    "phone": "Phone Number",
+    "noDoctors": "No doctors registered",
+    "addSlot": "Add Slot",
+    "availableSlots": "Available Slots",
+    "noSlots": "No available slots",
+    "slotDate": "Date",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "booked": "Booked",
+    "available": "Available",
+    "selectDoctor": "Select Doctor",
+    "selectSlot": "Select Time Slot",
+    "selectService": "Select Service Type",
+    "selectClinic": "Select Clinic",
+    "selectPetOptional": "Select Pet (Optional)",
+    "noDoctorsInClinic": "No doctors in this clinic",
+    "noSlotsAvailable": "No available slots for this doctor",
+    "fillRequired": "Please fill all required fields",
+    "whatsapp": "WhatsApp",
+    "call": "Call"
   },
   "shelter": {
     "dashboard": "Shelter Dashboard",

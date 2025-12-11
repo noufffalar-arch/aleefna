@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import ShelterDashboard from "./pages/ShelterDashboard";
 import ClinicDashboard from "./pages/ClinicDashboard";
 import ClinicSettings from "./pages/ClinicSettings";
+import ClinicDoctors from "./pages/ClinicDoctors";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
 import Services from "./pages/Services";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/shelter-dashboard" element={<ShelterDashboard />} />
             <Route path="/clinic-dashboard" element={<ClinicDashboard />} />
             <Route path="/clinic-settings" element={<ClinicSettings />} />
+            <Route path="/clinic-doctors" element={<ClinicDoctors />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/services" element={<Services />} />

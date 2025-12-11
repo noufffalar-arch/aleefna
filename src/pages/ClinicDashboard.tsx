@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   PawPrint, Calendar, Heart, User, MapPin, Phone, 
   Clock, Check, X, MessageCircle, Stethoscope, DollarSign,
-  Plus, Settings
+  Plus, Settings, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -433,18 +433,33 @@ const ClinicDashboard = () => {
         )}
 
         {activeTab === 'settings' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('clinic.clinicSettings')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground text-sm">{t('clinic.settingsHint')}</p>
-              <Button variant="outline" className="w-full" onClick={() => navigate('/clinic-settings')}>
-                <Settings className="w-4 h-4 me-2" />
-                {t('clinic.editClinicInfo')}
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('clinic.clinicSettings')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground text-sm">{t('clinic.settingsHint')}</p>
+                <Button variant="outline" className="w-full" onClick={() => navigate('/clinic-settings')}>
+                  <Settings className="w-4 h-4 me-2" />
+                  {t('clinic.editClinicInfo')}
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('clinic.doctorsManagement')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground text-sm">{t('clinic.doctorsHint')}</p>
+                <Button variant="outline" className="w-full" onClick={() => navigate('/clinic-doctors')}>
+                  <Users className="w-4 h-4 me-2" />
+                  {t('doctors.title')}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
 

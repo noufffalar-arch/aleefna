@@ -148,7 +148,9 @@
     "availableForAdoption": "متاح للتبني",
     "clinicSettings": "إعدادات العيادة",
     "settingsHint": "قم بتحديث معلومات العيادة والخدمات والأسعار",
-    "editClinicInfo": "تعديل بيانات العيادة"
+    "editClinicInfo": "تعديل بيانات العيادة",
+    "doctorsManagement": "إدارة الأطباء والمواعيد",
+    "doctorsHint": "إضافة أطباء وتحديد المواعيد المتاحة"
   },
   "clinicSettings": {
     "title": "إعدادات العيادة",
@@ -176,6 +178,35 @@
     "clinicPhoto": "صورة العيادة",
     "clickToUpload": "اضغط لرفع صورة",
     "imageUploaded": "تم رفع الصورة بنجاح"
+  },
+  "doctors": {
+    "title": "إدارة الأطباء والمواعيد",
+    "doctorsList": "قائمة الأطباء",
+    "addDoctor": "إضافة طبيب",
+    "doctorName": "اسم الطبيب",
+    "doctorNamePlaceholder": "أدخل اسم الطبيب",
+    "specialization": "التخصص",
+    "specializationPlaceholder": "مثال: طب عام",
+    "phone": "رقم الهاتف",
+    "noDoctors": "لا يوجد أطباء مسجلين",
+    "addSlot": "إضافة موعد",
+    "availableSlots": "المواعيد المتاحة",
+    "noSlots": "لا توجد مواعيد متاحة",
+    "slotDate": "التاريخ",
+    "startTime": "وقت البداية",
+    "endTime": "وقت النهاية",
+    "booked": "محجوز",
+    "available": "متاح",
+    "selectDoctor": "اختر الطبيب",
+    "selectSlot": "اختر الموعد",
+    "selectService": "اختر نوع الخدمة",
+    "selectClinic": "اختر العيادة",
+    "selectPetOptional": "اختر الحيوان (اختياري)",
+    "noDoctorsInClinic": "لا يوجد أطباء في هذه العيادة",
+    "noSlotsAvailable": "لا توجد مواعيد متاحة لهذا الطبيب",
+    "fillRequired": "الرجاء تعبئة جميع الحقول المطلوبة",
+    "whatsapp": "واتساب",
+    "call": "اتصال"
   },
   "shelter": {
     "dashboard": "لوحة تحكم الملجأ",
