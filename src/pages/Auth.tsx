@@ -125,9 +125,9 @@ const Auth = () => {
       </h1>
 
       {/* Forms */}
-      <div className="flex-1 flex flex-col max-w-sm mx-auto w-full">
+      <div className="max-w-sm mx-auto w-full pb-8">
         {mode === 'login' && (
-          <form onSubmit={handleLogin} className="space-y-5 animate-fade-in">
+          <form onSubmit={handleLogin} className="space-y-4 animate-fade-in">
             <div>
               <label className="aleefna-label text-start">{t('auth.email')}</label>
               <Input 
