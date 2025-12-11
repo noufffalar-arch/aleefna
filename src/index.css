@@ -109,12 +109,45 @@
     @apply bg-background text-foreground font-cairo antialiased;
   }
 
+  /* RTL/LTR Direction Support */
   html[dir="rtl"] {
     direction: rtl;
   }
 
   html[dir="ltr"] {
     direction: ltr;
+  }
+
+  /* RTL text alignment */
+  html[dir="rtl"] {
+    text-align: right;
+  }
+
+  html[dir="ltr"] {
+    text-align: left;
+  }
+
+  /* Flip icons and elements in RTL */
+  html[dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  /* Flex direction reversal for RTL */
+  html[dir="rtl"] .rtl-flex-reverse {
+    flex-direction: row-reverse;
+  }
+
+  /* RTL-aware spacing */
+  html[dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+
+  html[dir="rtl"] .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
+  }
+
+  html[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-x-reverse: 1;
   }
 }
 
@@ -132,16 +165,7 @@
   }
 
   .aleefna-label {
-    @apply text-sm font-medium text-muted-foreground mb-2 block;
-  }
-
-  /* RTL text alignment helper */
-  html[dir="rtl"] .aleefna-label {
-    @apply text-end;
-  }
-
-  html[dir="ltr"] .aleefna-label {
-    @apply text-start;
+    @apply text-sm font-medium text-muted-foreground mb-2 block text-start;
   }
 
   .splash-bg {

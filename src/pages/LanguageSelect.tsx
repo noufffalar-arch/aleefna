@@ -12,7 +12,7 @@ const LanguageSelect = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center splash-bg px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center splash-bg px-6" dir="ltr">
       {/* Logo */}
       <div className="animate-bounce-soft mb-8">
         <div className="paw-logo-large">
