@@ -322,6 +322,57 @@ export type Database = {
           },
         ]
       }
+      missing_report_sightings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          latitude: number
+          location_text: string
+          longitude: number
+          missing_report_id: string
+          photo_url: string | null
+          reported_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          latitude: number
+          location_text: string
+          longitude: number
+          missing_report_id: string
+          photo_url?: string | null
+          reported_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          latitude?: number
+          location_text?: string
+          longitude?: number
+          missing_report_id?: string
+          photo_url?: string | null
+          reported_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missing_report_sightings_missing_report_id_fkey"
+            columns: ["missing_report_id"]
+            isOneToOne: false
+            referencedRelation: "missing_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missing_report_sightings_missing_report_id_fkey"
+            columns: ["missing_report_id"]
+            isOneToOne: false
+            referencedRelation: "missing_reports_map"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       missing_reports: {
         Row: {
           contact_phone: string

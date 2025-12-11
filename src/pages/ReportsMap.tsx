@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2, PartyPopper, MapPin, Volume2, VolumeX } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2, PartyPopper, MapPin, Volume2, VolumeX, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -90,6 +91,31 @@ interface SelectedReport {
   data: MissingReport | StrayReport;
 }
 
+interface Sighting {
+  id: string;
+  missing_report_id: string;
+  latitude: number;
+  longitude: number;
+  location_text: string;
+  description: string | null;
+  photo_url: string | null;
+  reported_by: string | null;
+  created_at: string;
+}
+
+// Sighting marker icon
+const sightingIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `<div style="background: #f59e0b; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  </div>`,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+  popupAnchor: [0, -10],
+});
+
 const missingPetIcon = L.divIcon({
   className: 'custom-marker',
   html: `<div style="background: #5B9B5B; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
@@ -132,9 +158,18 @@ const ReportsMap = () => {
   const [submitting, setSubmitting] = useState(false);
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  // Sighting/Tracking state
+  const [sightings, setSightings] = useState<Sighting[]>([]);
+  const [sightingDialogOpen, setSightingDialogOpen] = useState(false);
+  const [sightingLocation, setSightingLocation] = useState('');
+  const [sightingDescription, setSightingDescription] = useState('');
+  const [sightingCoords, setSightingCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [showTrackingPath, setShowTrackingPath] = useState(true);
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const sightingMarkersRef = useRef<L.Marker[]>([]);
+  const trackingPathRef = useRef<L.Polyline | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
 
   // Extract unique regions from reports
@@ -177,6 +212,182 @@ const ReportsMap = () => {
     }
     toast({ title, description, variant });
   }, [soundEnabled, toast]);
+
+  // Fetch sightings for a missing report
+  const fetchSightings = useCallback(async (reportId: string) => {
+    const { data, error } = await supabase
+      .from('missing_report_sightings')
+      .select('*')
+      .eq('missing_report_id', reportId)
+      .order('created_at', { ascending: true });
+    
+    if (data && !error) {
+      setSightings(data);
+    }
+  }, []);
+
+  // Submit a new sighting
+  const handleSubmitSighting = async () => {
+    if (!selectedReport || selectedReport.type !== 'missing' || !sightingLocation) return;
+    
+    setSubmitting(true);
+    const report = selectedReport.data as MissingReport;
+    
+    // Get current location if not set
+    let coords = sightingCoords;
+    if (!coords && navigator.geolocation) {
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+        });
+        coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+      } catch (e) {
+        // Use report's last known location as fallback
+        if (report.latitude && report.longitude) {
+          coords = { lat: report.latitude, lng: report.longitude };
+        }
+      }
+    }
+
+    if (!coords) {
+      toast({
+        title: 'خطأ',
+        description: 'لم نتمكن من تحديد الموقع',
+        variant: 'destructive',
+      });
+      setSubmitting(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('missing_report_sightings')
+      .insert({
+        missing_report_id: report.id,
+        latitude: coords.lat,
+        longitude: coords.lng,
+        location_text: sightingLocation,
+        description: sightingDescription || null,
+        reported_by: user?.id || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء إرسال المشاهدة',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'شكراً لك!',
+        description: 'تم إرسال بلاغ المشاهدة بنجاح',
+      });
+      if (data) {
+        setSightings(prev => [...prev, data]);
+      }
+      setSightingDialogOpen(false);
+      setSightingLocation('');
+      setSightingDescription('');
+      setSightingCoords(null);
+    }
+    setSubmitting(false);
+  };
+
+  // Get current location for sighting
+  const getSightingLocation = () => {
+    if (!navigator.geolocation) return;
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setSightingCoords({ lat: latitude, lng: longitude });
+        
+        // Reverse geocode to get address
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ar`
+          );
+          const data = await response.json();
+          if (data.display_name) {
+            setSightingLocation(data.display_name.split(',').slice(0, 3).join('،'));
+          }
+        } catch (e) {
+          setSightingLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        }
+      },
+      (error) => {
+        console.log('Geolocation error:', error);
+        toast({
+          title: 'تنبيه',
+          description: 'لم نتمكن من تحديد موقعك، يرجى إدخال الموقع يدوياً',
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  // Fetch sightings when a missing report is selected
+  useEffect(() => {
+    if (selectedReport?.type === 'missing') {
+      fetchSightings((selectedReport.data as MissingReport).id);
+    } else {
+      setSightings([]);
+    }
+  }, [selectedReport, fetchSightings]);
+
+  // Draw tracking path on map
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // Clear existing sighting markers and path
+    sightingMarkersRef.current.forEach(marker => marker.remove());
+    sightingMarkersRef.current = [];
+    if (trackingPathRef.current) {
+      trackingPathRef.current.remove();
+      trackingPathRef.current = null;
+    }
+
+    if (!showTrackingPath || !selectedReport || selectedReport.type !== 'missing' || sightings.length === 0) {
+      return;
+    }
+
+    const report = selectedReport.data as MissingReport;
+    
+    // Build path points: start from original location, then sightings
+    const pathPoints: [number, number][] = [];
+    
+    if (report.latitude && report.longitude) {
+      pathPoints.push([report.latitude, report.longitude]);
+    }
+    
+    sightings.forEach(sighting => {
+      pathPoints.push([sighting.latitude, sighting.longitude]);
+      
+      // Add sighting marker
+      const marker = L.marker([sighting.latitude, sighting.longitude], { icon: sightingIcon })
+        .addTo(mapRef.current!)
+        .bindPopup(`
+          <div style="text-align: center; padding: 4px; min-width: 150px;">
+            <p style="font-weight: bold; margin: 0; font-size: 12px;">📍 مشاهدة</p>
+            <p style="font-size: 11px; color: #666; margin: 4px 0;">${sighting.location_text}</p>
+            <p style="font-size: 10px; color: #999; margin: 0;" dir="ltr">${new Date(sighting.created_at).toLocaleString('ar-SA')}</p>
+            ${sighting.description ? `<p style="font-size: 11px; margin-top: 4px; color: #444;">${sighting.description}</p>` : ''}
+          </div>
+        `);
+      sightingMarkersRef.current.push(marker);
+    });
+
+    // Draw the path line
+    if (pathPoints.length >= 2) {
+      trackingPathRef.current = L.polyline(pathPoints, {
+        color: '#f59e0b',
+        weight: 3,
+        opacity: 0.8,
+        dashArray: '10, 10',
+      }).addTo(mapRef.current);
+    }
+  }, [selectedReport, sightings, showTrackingPath]);
 
   const handleMarkAsFound = async () => {
     if (!selectedReport || selectedReport.type !== 'missing') return;
@@ -582,6 +793,10 @@ const ReportsMap = () => {
               <span>حيوان ضال</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-amber-500"></div>
+              <span>مشاهدة</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded-full bg-blue-500"></div>
               <span>موقعك</span>
             </div>
@@ -691,6 +906,41 @@ const ReportsMap = () => {
                     </p>
                   )}
                   
+                  {/* Sightings/Tracking Section */}
+                  {sightings.length > 0 && (
+                    <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-amber-600" />
+                          <span className="font-semibold text-amber-700 dark:text-amber-400 text-sm">
+                            مشاهدات ({sightings.length})
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => setShowTrackingPath(!showTrackingPath)}
+                        >
+                          {showTrackingPath ? 'إخفاء المسار' : 'عرض المسار'}
+                        </Button>
+                      </div>
+                      <div className="space-y-1 max-h-24 overflow-y-auto">
+                        {sightings.slice(-3).map((s, i) => (
+                          <div key={s.id} className="text-xs flex items-center gap-2">
+                            <span className="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px]">
+                              {sightings.length - 2 + i > 0 ? sightings.length - 2 + i : 1}
+                            </span>
+                            <span className="flex-1 truncate">{s.location_text}</span>
+                            <span className="text-muted-foreground" dir="ltr">
+                              {new Date(s.created_at).toLocaleDateString('ar-SA')}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-col gap-2 mt-3">
                     {isAuthenticated && (selectedReport.data as MissingReport).contact_phone ? (
                       <Button className="w-full" asChild>
@@ -705,6 +955,29 @@ const ReportsMap = () => {
                         onClick={() => navigate('/auth')}
                       >
                         🔒 سجل دخولك لرؤية معلومات التواصل
+                      </Button>
+                    )}
+                    
+                    {/* Report Sighting Button */}
+                    {(selectedReport.data as MissingReport).status !== 'found' && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-amber-500 text-amber-600 hover:bg-amber-50"
+                        onClick={() => {
+                          if (!isAuthenticated) {
+                            toast({
+                              title: 'تنبيه',
+                              description: 'يجب تسجيل الدخول للإبلاغ عن مشاهدة',
+                            });
+                            navigate('/auth');
+                            return;
+                          }
+                          setSightingDialogOpen(true);
+                          getSightingLocation();
+                        }}
+                      >
+                        <MapPin className="w-4 h-4 ml-2" />
+                        أبلغ عن مشاهدة
                       </Button>
                     )}
                     
@@ -841,6 +1114,83 @@ const ReportsMap = () => {
               disabled={submitting}
             >
               {submitting ? 'جاري الحفظ...' : 'تأكيد'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sighting Dialog */}
+      <Dialog open={sightingDialogOpen} onOpenChange={setSightingDialogOpen}>
+        <DialogContent className="max-w-sm" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-amber-600" />
+              أبلغ عن مشاهدة
+            </DialogTitle>
+            <DialogDescription>
+              إذا رأيت هذا الحيوان، ساعدنا بتحديد موقعه
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="sighting-location">الموقع *</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="sighting-location"
+                  placeholder="أين رأيت الحيوان؟"
+                  value={sightingLocation}
+                  onChange={(e) => setSightingLocation(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={getSightingLocation}
+                  title="تحديد موقعي"
+                >
+                  <LocateFixed className="w-4 h-4" />
+                </Button>
+              </div>
+              {sightingCoords && (
+                <p className="text-xs text-muted-foreground">
+                  📍 تم تحديد الموقع: {sightingCoords.lat.toFixed(4)}, {sightingCoords.lng.toFixed(4)}
+                </p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="sighting-desc">وصف المشاهدة (اختياري)</Label>
+              <Textarea
+                id="sighting-desc"
+                placeholder="مثال: كان يتجول بالقرب من المسجد..."
+                value={sightingDescription}
+                onChange={(e) => setSightingDescription(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => {
+                setSightingDialogOpen(false);
+                setSightingLocation('');
+                setSightingDescription('');
+                setSightingCoords(null);
+              }}
+            >
+              إلغاء
+            </Button>
+            <Button 
+              className="flex-1 bg-amber-600 hover:bg-amber-700"
+              onClick={handleSubmitSighting}
+              disabled={submitting || !sightingLocation}
+            >
+              {submitting ? 'جاري الإرسال...' : 'إرسال البلاغ'}
             </Button>
           </div>
         </DialogContent>
