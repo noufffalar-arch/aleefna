@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, ArrowRight, Save, Plus, X, Stethoscope } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Plus, X, Stethoscope, Camera, ImageIcon, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,8 @@ interface ClinicData {
   doctor_name: string;
   services: string[];
   prices: Record<string, number>;
+  logo_url: string;
+  photo_url: string;
 }
 
 const SERVICE_OPTIONS = [
@@ -37,6 +39,10 @@ const ClinicSettings = () => {
   const { user, profile, loading } = useAuth();
   const [saving, setSaving] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [clinicData, setClinicData] = useState<ClinicData>({
     name: '',
     city: '',
@@ -45,7 +51,9 @@ const ClinicSettings = () => {
     phone: '',
     doctor_name: '',
     services: [],
-    prices: {}
+    prices: {},
+    logo_url: '',
+    photo_url: ''
   });
 
   const isRtl = i18n.language === 'ar';
@@ -84,10 +92,54 @@ const ClinicSettings = () => {
         phone: data.phone || '',
         doctor_name: data.doctor_name || '',
         services: data.services || [],
-        prices: (data.prices as Record<string, number>) || {}
+        prices: (data.prices as Record<string, number>) || {},
+        logo_url: data.logo_url || '',
+        photo_url: data.photo_url || ''
       });
     }
     setLoadingData(false);
+  };
+
+  const uploadImage = async (file: File, type: 'logo' | 'photo') => {
+    if (!user) return;
+    
+    const isLogo = type === 'logo';
+    isLogo ? setUploadingLogo(true) : setUploadingPhoto(true);
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('clinic-images')
+      .upload(fileName, file, { upsert: true });
+    
+    if (uploadError) {
+      toast.error(t('common.error'));
+      isLogo ? setUploadingLogo(false) : setUploadingPhoto(false);
+      return;
+    }
+    
+    const { data: urlData } = supabase.storage
+      .from('clinic-images')
+      .getPublicUrl(fileName);
+    
+    setClinicData(prev => ({
+      ...prev,
+      [isLogo ? 'logo_url' : 'photo_url']: urlData.publicUrl
+    }));
+    
+    isLogo ? setUploadingLogo(false) : setUploadingPhoto(false);
+    toast.success(t('clinicSettings.imageUploaded'));
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadImage(file, 'logo');
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadImage(file, 'photo');
   };
 
   const handleSave = async () => {
@@ -102,6 +154,8 @@ const ClinicSettings = () => {
       doctor_name: clinicData.doctor_name,
       services: clinicData.services,
       prices: clinicData.prices,
+      logo_url: clinicData.logo_url,
+      photo_url: clinicData.photo_url,
       user_id: user!.id
     };
 
@@ -176,6 +230,85 @@ const ClinicSettings = () => {
       </div>
 
       <div className="p-6 space-y-6">
+        {/* Images */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('clinicSettings.images')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Logo Upload */}
+            <div className="space-y-2">
+              <Label>{t('clinicSettings.logo')}</Label>
+              <div className="flex items-center gap-4">
+                <div 
+                  className="w-20 h-20 rounded-xl bg-secondary flex items-center justify-center overflow-hidden border-2 border-dashed border-border cursor-pointer hover:border-primary transition-colors"
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  {uploadingLogo ? (
+                    <div className="animate-pulse">
+                      <Upload className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                  ) : clinicData.logo_url ? (
+                    <img src={clinicData.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <Stethoscope className="w-8 h-8 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">{t('clinicSettings.logoHint')}</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                  >
+                    <Camera className="w-4 h-4 me-2" />
+                    {t('clinicSettings.uploadLogo')}
+                  </Button>
+                </div>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleLogoChange}
+                />
+              </div>
+            </div>
+
+            {/* Clinic Photo Upload */}
+            <div className="space-y-2">
+              <Label>{t('clinicSettings.clinicPhoto')}</Label>
+              <div 
+                className="w-full h-40 rounded-xl bg-secondary flex flex-col items-center justify-center overflow-hidden border-2 border-dashed border-border cursor-pointer hover:border-primary transition-colors"
+                onClick={() => photoInputRef.current?.click()}
+              >
+                {uploadingPhoto ? (
+                  <div className="animate-pulse">
+                    <Upload className="w-8 h-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mt-2">{t('common.loading')}</p>
+                  </div>
+                ) : clinicData.photo_url ? (
+                  <img src={clinicData.photo_url} alt="Clinic" className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <ImageIcon className="w-10 h-10 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mt-2">{t('clinicSettings.clickToUpload')}</p>
+                  </>
+                )}
+              </div>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Basic Info */}
         <Card>
           <CardHeader>

@@ -174,8 +174,10 @@ export type Database = {
           created_at: string
           doctor_name: string | null
           id: string
+          logo_url: string | null
           name: string
           phone: string | null
+          photo_url: string | null
           prices: Json | null
           services: string[] | null
           user_id: string | null
@@ -187,8 +189,10 @@ export type Database = {
           created_at?: string
           doctor_name?: string | null
           id?: string
+          logo_url?: string | null
           name: string
           phone?: string | null
+          photo_url?: string | null
           prices?: Json | null
           services?: string[] | null
           user_id?: string | null
@@ -200,8 +204,10 @@ export type Database = {
           created_at?: string
           doctor_name?: string | null
           id?: string
+          logo_url?: string | null
           name?: string
           phone?: string | null
+          photo_url?: string | null
           prices?: Json | null
           services?: string[] | null
           user_id?: string | null
