@@ -575,7 +575,70 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      missing_reports_map: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string | null
+          last_seen_date: string | null
+          last_seen_location: string | null
+          latitude: number | null
+          longitude: number | null
+          pet_id: string | null
+          pet_name: string | null
+          pet_photo_url: string | null
+          pet_species: string | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missing_reports_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stray_reports_map: {
+        Row: {
+          animal_type: string | null
+          created_at: string | null
+          danger_level: string | null
+          description: string | null
+          id: string | null
+          latitude: number | null
+          location_text: string | null
+          longitude: number | null
+          photo_url: string | null
+          status: string | null
+        }
+        Insert: {
+          animal_type?: string | null
+          created_at?: string | null
+          danger_level?: string | null
+          description?: string | null
+          id?: string | null
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          photo_url?: string | null
+          status?: string | null
+        }
+        Update: {
+          animal_type?: string | null
+          created_at?: string | null
+          danger_level?: string | null
+          description?: string | null
+          id?: string | null
+          latitude?: number | null
+          location_text?: string | null
+          longitude?: number | null
+          photo_url?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
