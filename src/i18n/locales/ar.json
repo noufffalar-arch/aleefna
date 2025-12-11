@@ -208,7 +208,15 @@
     "whatsapp": "واتساب",
     "call": "اتصال",
     "doctorNameRequired": "الرجاء إدخال اسم الطبيب",
-    "noClinicLinked": "لم يتم ربط العيادة بحسابك بعد"
+    "noClinicLinked": "لم يتم ربط العيادة بحسابك بعد",
+    "workShift": "فترة العمل",
+    "morningShift": "صباحية",
+    "eveningShift": "مسائية",
+    "fullDayShift": "يوم كامل",
+    "daysAhead": "عدد الأيام",
+    "days": "يوم",
+    "daysAheadHint": "سيتم إنشاء المواعيد تلقائياً لهذا العدد من الأيام (ماعدا الجمعة)",
+    "doctorAddedWithSlots": "تم إضافة الطبيب وإنشاء المواعيد بنجاح"
   },
   "shelter": {
     "dashboard": "لوحة تحكم الملجأ",
