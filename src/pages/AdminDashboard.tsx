@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useRTL } from '@/hooks/useRTL';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2 } from 'lucide-react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ArrowLeft, ArrowRight, Shield, Users, PawPrint, Building2, Landmark, Store, AlertTriangle } from 'lucide-react';
 import AdminUsersTab from '@/components/admin/AdminUsersTab';
 import AdminPetsTab from '@/components/admin/AdminPetsTab';
 import AdminSheltersTab from '@/components/admin/AdminSheltersTab';
+import AdminGovernmentTab from '@/components/admin/AdminGovernmentTab';
+import AdminStoresTab from '@/components/admin/AdminStoresTab';
+import AdminStrayReportsTab from '@/components/admin/AdminStrayReportsTab';
 import type { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role'];
@@ -110,20 +114,35 @@ const AdminDashboard = () => {
 
       <div className="p-4">
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('admin.usersTab')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="pets" className="flex items-center gap-2">
-              <PawPrint className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('admin.petsTab')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="shelters" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('admin.sheltersTab')}</span>
-            </TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap mb-6">
+            <TabsList className="inline-flex w-max">
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span>{t('admin.usersTab')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="pets" className="flex items-center gap-2">
+                <PawPrint className="h-4 w-4" />
+                <span>{t('admin.petsTab')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="shelters" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                <span>{t('admin.sheltersTab')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="government" className="flex items-center gap-2">
+                <Landmark className="h-4 w-4" />
+                <span>{t('admin.governmentTab')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="stores" className="flex items-center gap-2">
+                <Store className="h-4 w-4" />
+                <span>{t('admin.storesTab')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="stray" className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                <span>{t('admin.strayTab')}</span>
+              </TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
 
           <TabsContent value="users">
             <AdminUsersTab 
@@ -140,6 +159,18 @@ const AdminDashboard = () => {
 
           <TabsContent value="shelters">
             <AdminSheltersTab users={users} isRtl={isRtl} />
+          </TabsContent>
+
+          <TabsContent value="government">
+            <AdminGovernmentTab users={users} isRtl={isRtl} />
+          </TabsContent>
+
+          <TabsContent value="stores">
+            <AdminStoresTab users={users} isRtl={isRtl} />
+          </TabsContent>
+
+          <TabsContent value="stray">
+            <AdminStrayReportsTab isRtl={isRtl} />
           </TabsContent>
         </Tabs>
       </div>
