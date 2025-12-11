@@ -90,13 +90,42 @@ const ReportsMap = () => {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const map = L.map(mapContainerRef.current).setView([26.4207, 50.0888], 12);
+    // Default to Dammam
+    const defaultLocation: [number, number] = [26.4207, 50.0888];
+    
+    const map = L.map(mapContainerRef.current).setView(defaultLocation, 12);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
     mapRef.current = map;
+
+    // Try to get user's current location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          if (mapRef.current) {
+            mapRef.current.setView([latitude, longitude], 14);
+            
+            // Add user location marker
+            L.marker([latitude, longitude], {
+              icon: L.divIcon({
+                className: 'user-location-marker',
+                html: `<div style="background: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59,130,246,0.5);"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8],
+              })
+            }).addTo(mapRef.current).bindPopup('موقعك الحالي');
+          }
+        },
+        (error) => {
+          console.log('Geolocation error:', error.message);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
 
     return () => {
       if (mapRef.current) {
