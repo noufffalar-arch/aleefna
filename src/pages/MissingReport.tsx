@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Search, MapPin, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -34,12 +34,15 @@ const MissingReport = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
   const [pets, setPets] = useState<Pet[]>([]);
   const [selectedPet, setSelectedPet] = useState('');
   const [lastSeenDate, setLastSeenDate] = useState('');
   const [lastSeenLocation, setLastSeenLocation] = useState('');
   const [description, setDescription] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -49,6 +52,57 @@ const MissingReport = () => {
   const fetchPets = async () => {
     const { data } = await supabase.from('pets').select('id, name').eq('user_id', user!.id);
     if (data) setPets(data);
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('متصفحك لا يدعم تحديد الموقع');
+      return;
+    }
+
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setLatitude(lat);
+        setLongitude(lng);
+        
+        // Try to get address from coordinates using reverse geocoding
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`
+          );
+          const data = await response.json();
+          if (data.display_name) {
+            setLastSeenLocation(data.display_name);
+          }
+        } catch {
+          // If reverse geocoding fails, just set coordinates
+          setLastSeenLocation(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+        }
+        
+        setLocationLoading(false);
+        toast.success('تم تحديد موقعك بنجاح');
+      },
+      (error) => {
+        setLocationLoading(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error('تم رفض إذن الوصول للموقع');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            toast.error('معلومات الموقع غير متاحة');
+            break;
+          case error.TIMEOUT:
+            toast.error('انتهت مهلة طلب الموقع');
+            break;
+          default:
+            toast.error('حدث خطأ في تحديد الموقع');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,8 +139,8 @@ const MissingReport = () => {
       last_seen_location: result.data.lastSeenLocation,
       description: result.data.description || null,
       contact_phone: result.data.contactPhone,
-      latitude: 26.4207,
-      longitude: 50.0888,
+      latitude: latitude || 26.4207,
+      longitude: longitude || 50.0888,
     });
 
     // Mark pet as missing
@@ -142,14 +196,35 @@ const MissingReport = () => {
 
         <div>
           <label className="aleefna-label">{t('missing.lastSeenLocation')}</label>
-          <Input 
-            type="text" 
-            value={lastSeenLocation} 
-            onChange={(e) => setLastSeenLocation(e.target.value)}
-            placeholder="مثال: حي الخالدية الشمالية، الدمام"
-            className={errors.lastSeenLocation ? 'border-destructive' : ''}
-          />
+          <div className="flex gap-2">
+            <Input 
+              type="text" 
+              value={lastSeenLocation} 
+              onChange={(e) => setLastSeenLocation(e.target.value)}
+              placeholder="مثال: حي الخالدية الشمالية، الدمام"
+              className={`flex-1 ${errors.lastSeenLocation ? 'border-destructive' : ''}`}
+            />
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon"
+              onClick={getCurrentLocation}
+              disabled={locationLoading}
+              title="تحديد موقعي الحالي"
+            >
+              {locationLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <MapPin className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
           {errors.lastSeenLocation && <p className="text-sm text-destructive mt-1">{errors.lastSeenLocation}</p>}
+          {latitude && longitude && (
+            <p className="text-xs text-muted-foreground mt-1">
+              📍 الإحداثيات: {latitude.toFixed(4)}, {longitude.toFixed(4)}
+            </p>
+          )}
         </div>
 
         <div>
