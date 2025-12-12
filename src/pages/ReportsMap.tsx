@@ -6,12 +6,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2, PartyPopper, MapPin, Volume2, VolumeX, Eye } from 'lucide-react';
+import { ArrowRight, AlertTriangle, Search, X, LocateFixed, Hospital, CheckCircle2, PartyPopper, MapPin, Volume2, VolumeX, Eye, ZoomIn, Filter } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useCanViewPhone } from '@/hooks/useCanViewPhone';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -158,6 +159,8 @@ const ReportsMap = () => {
   const [submitting, setSubmitting] = useState(false);
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [imageModalUrl, setImageModalUrl] = useState<string | null>(null);
   // Sighting/Tracking state
   const [sightings, setSightings] = useState<Sighting[]>([]);
   const [sightingDialogOpen, setSightingDialogOpen] = useState(false);
@@ -165,6 +168,12 @@ const ReportsMap = () => {
   const [sightingDescription, setSightingDescription] = useState('');
   const [sightingCoords, setSightingCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showTrackingPath, setShowTrackingPath] = useState(true);
+  
+  // Get selected report owner id for phone visibility
+  const selectedReportOwnerId = selectedReport?.type === 'missing' 
+    ? (selectedReport.data as MissingReport & { user_id?: string })?.user_id 
+    : undefined;
+  const { canViewPhone } = useCanViewPhone({ ownerId: selectedReportOwnerId });
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -700,64 +709,61 @@ const ReportsMap = () => {
         </button>
       </div>
 
+      {/* Region Filter - Prominent at top */}
+      <div className="px-4 py-2 bg-primary/10 border-b flex items-center gap-2">
+        <Filter className="w-4 h-4 text-primary" />
+        <span className="text-sm font-medium text-foreground">فلتر المنطقة:</span>
+        <Select value={regionFilter} onValueChange={setRegionFilter}>
+          <SelectTrigger className="h-9 flex-1 bg-background border-primary/30">
+            <SelectValue placeholder="جميع المناطق" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">جميع المناطق</SelectItem>
+            {regions.map(region => (
+              <SelectItem key={region} value={region}>{region}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Filter Buttons */}
-      <div className="px-4 py-3 flex flex-col gap-2 bg-background border-b z-10">
-        <div className="flex gap-2 items-center">
-          <Button
-            variant={filter === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter('all')}
-          >
-            الكل ({filteredMissingReports.length + filteredStrayReports.length})
-          </Button>
-          <Button
-            variant={filter === 'missing' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter('missing')}
-            className="gap-1"
-          >
-            <Search className="w-3 h-3" />
-            مفقود ({filteredMissingReports.length})
-          </Button>
-          <Button
-            variant={filter === 'stray' ? 'destructive' : 'outline'}
-            size="sm"
-            onClick={() => setFilter('stray')}
-            className="gap-1"
-          >
-            <AlertTriangle className="w-3 h-3" />
-            ضال ({filteredStrayReports.length})
-          </Button>
-          
-          {/* Sound Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            className="ms-auto"
-            title={soundEnabled ? 'إيقاف الصوت' : 'تشغيل الصوت'}
-          >
-            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
-          </Button>
-        </div>
+      <div className="px-4 py-2 flex gap-2 items-center bg-background border-b z-10">
+        <Button
+          variant={filter === 'all' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('all')}
+        >
+          الكل ({filteredMissingReports.length + filteredStrayReports.length})
+        </Button>
+        <Button
+          variant={filter === 'missing' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('missing')}
+          className="gap-1"
+        >
+          <Search className="w-3 h-3" />
+          مفقود ({filteredMissingReports.length})
+        </Button>
+        <Button
+          variant={filter === 'stray' ? 'destructive' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('stray')}
+          className="gap-1"
+        >
+          <AlertTriangle className="w-3 h-3" />
+          ضال ({filteredStrayReports.length})
+        </Button>
         
-        {/* Region Filter */}
-        {regions.length > 0 && (
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-muted-foreground" />
-            <Select value={regionFilter} onValueChange={setRegionFilter}>
-              <SelectTrigger className="h-8 text-xs flex-1">
-                <SelectValue placeholder="اختر المنطقة" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">جميع المناطق</SelectItem>
-                {regions.map(region => (
-                  <SelectItem key={region} value={region}>{region}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        {/* Sound Toggle */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSoundEnabled(!soundEnabled)}
+          className="ms-auto"
+          title={soundEnabled ? 'إيقاف الصوت' : 'تشغيل الصوت'}
+        >
+          {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
+        </Button>
       </div>
 
       {/* Map */}
@@ -837,20 +843,42 @@ const ReportsMap = () => {
               </button>
             </div>
 
-            {/* Image */}
+            {/* Image - Clickable to view full size */}
             {selectedReport.type === 'missing' && (selectedReport.data as MissingReport).pets?.photo_url && (
-              <img
-                src={(selectedReport.data as MissingReport).pets?.photo_url!}
-                alt="صورة الحيوان"
-                className="w-full h-40 object-cover rounded-lg mb-3"
-              />
+              <div 
+                className="relative cursor-pointer group"
+                onClick={() => {
+                  setImageModalUrl((selectedReport.data as MissingReport).pets?.photo_url!);
+                  setImageModalOpen(true);
+                }}
+              >
+                <img
+                  src={(selectedReport.data as MissingReport).pets?.photo_url!}
+                  alt="صورة الحيوان"
+                  className="w-full h-40 object-cover rounded-lg mb-3"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
+                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
             )}
             {selectedReport.type === 'stray' && (selectedReport.data as StrayReport).photo_url && (
-              <img
-                src={(selectedReport.data as StrayReport).photo_url!}
-                alt="صورة الحيوان"
-                className="w-full h-40 object-cover rounded-lg mb-3"
-              />
+              <div 
+                className="relative cursor-pointer group"
+                onClick={() => {
+                  setImageModalUrl((selectedReport.data as StrayReport).photo_url!);
+                  setImageModalOpen(true);
+                }}
+              >
+                <img
+                  src={(selectedReport.data as StrayReport).photo_url!}
+                  alt="صورة الحيوان"
+                  className="w-full h-40 object-cover rounded-lg mb-3"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
+                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
             )}
 
             {/* Details */}
@@ -942,11 +970,20 @@ const ReportsMap = () => {
                   )}
 
                   <div className="flex flex-col gap-2 mt-3">
-                    {isAuthenticated && (selectedReport.data as MissingReport).contact_phone ? (
+                    {/* Contact button - only show to owner, admin, and shelter */}
+                    {canViewPhone && (selectedReport.data as MissingReport).contact_phone ? (
                       <Button className="w-full" asChild>
                         <a href={`tel:${(selectedReport.data as MissingReport).contact_phone}`}>
                           📞 اتصل بالمالك
                         </a>
+                      </Button>
+                    ) : isAuthenticated ? (
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        disabled
+                      >
+                        🔒 رقم التواصل مخفي للخصوصية
                       </Button>
                     ) : (
                       <Button 
@@ -954,7 +991,7 @@ const ReportsMap = () => {
                         variant="outline"
                         onClick={() => navigate('/auth')}
                       >
-                        🔒 سجل دخولك لرؤية معلومات التواصل
+                        🔒 سجل دخولك للتواصل
                       </Button>
                     )}
                     
@@ -1193,6 +1230,25 @@ const ReportsMap = () => {
               {submitting ? 'جاري الإرسال...' : 'إرسال البلاغ'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Modal */}
+      <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95" dir="rtl">
+          <button 
+            onClick={() => setImageModalOpen(false)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center z-10 transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          {imageModalUrl && (
+            <img
+              src={imageModalUrl}
+              alt="صورة الحيوان"
+              className="w-full h-full object-contain max-h-[90vh]"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

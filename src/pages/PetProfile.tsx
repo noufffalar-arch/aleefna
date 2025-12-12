@@ -15,11 +15,14 @@ import {
   Syringe,
   AlertCircle,
   User,
-  Lock
+  Lock,
+  X,
+  ZoomIn
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import BottomNav from '@/components/BottomNav';
 
 interface Pet {
@@ -55,15 +58,18 @@ const PetProfile = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { canViewPhone, loading: phoneLoading } = useCanViewPhone();
   const { isRtl, dir } = useRTL();
   
   const [pet, setPet] = useState<Pet | null>(null);
   const [owner, setOwner] = useState<OwnerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
 
   const isOwner = user?.id === pet?.user_id;
+  
+  // Pass owner ID to check if current user is the owner
+  const { canViewPhone, loading: phoneLoading } = useCanViewPhone({ ownerId: pet?.user_id });
 
   useEffect(() => {
     if (id) {
@@ -143,14 +149,22 @@ const PetProfile = () => {
     <div className="min-h-screen bg-background pb-24" dir={dir}>
       {/* Header */}
       <div className="relative">
-        {/* Pet Image */}
-        <div className="h-64 bg-secondary">
+        {/* Pet Image - Clickable */}
+        <div 
+          className="h-64 bg-secondary relative cursor-pointer group"
+          onClick={() => pet.photo_url && setImageModalOpen(true)}
+        >
           {pet.photo_url ? (
-            <img 
-              src={pet.photo_url} 
-              alt={pet.name} 
-              className="w-full h-full object-cover"
-            />
+            <>
+              <img 
+                src={pet.photo_url} 
+                alt={pet.name} 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <ZoomIn className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <PawPrint className="w-20 h-20 text-muted-foreground" />
@@ -333,6 +347,25 @@ const PetProfile = () => {
       </div>
 
       <BottomNav />
+
+      {/* Image Modal */}
+      <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95">
+          <button 
+            onClick={() => setImageModalOpen(false)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center z-10 transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          {pet?.photo_url && (
+            <img
+              src={pet.photo_url}
+              alt={pet.name}
+              className="w-full h-full object-contain max-h-[90vh]"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

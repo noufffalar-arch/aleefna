@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const useCanViewPhone = () => {
+interface UseCanViewPhoneOptions {
+  ownerId?: string; // The owner of the resource being viewed
+}
+
+export const useCanViewPhone = (options?: UseCanViewPhoneOptions) => {
   const { user, profile } = useAuth();
   const [canViewPhone, setCanViewPhone] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -11,6 +15,13 @@ export const useCanViewPhone = () => {
     const checkPermission = async () => {
       if (!user) {
         setCanViewPhone(false);
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is the owner
+      if (options?.ownerId && user.id === options.ownerId) {
+        setCanViewPhone(true);
         setLoading(false);
         return;
       }
@@ -27,7 +38,7 @@ export const useCanViewPhone = () => {
     };
 
     checkPermission();
-  }, [user, profile]);
+  }, [user, profile, options?.ownerId]);
 
   return { canViewPhone, loading };
 };

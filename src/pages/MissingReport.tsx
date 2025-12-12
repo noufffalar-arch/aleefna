@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, Search, MapPin, Loader2 } from 'lucide-react';
+import { ArrowRight, Search, MapPin, Loader2, ImagePlus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 interface Pet {
   id: string;
   name: string;
+  photo_url: string | null;
 }
 
 // Zod validation schema
@@ -44,14 +45,69 @@ const MissingReport = () => {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const selectedPetData = pets.find(p => p.id === selectedPet);
 
   useEffect(() => {
     if (user) fetchPets();
   }, [user]);
 
   const fetchPets = async () => {
-    const { data } = await supabase.from('pets').select('id, name').eq('user_id', user!.id);
+    const { data } = await supabase.from('pets').select('id, name, photo_url').eq('user_id', user!.id);
     if (data) setPets(data);
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('حجم الصورة يجب أن لا يتجاوز 5 ميجابايت');
+        return;
+      }
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile || !user) return null;
+    
+    setUploadingPhoto(true);
+    const fileExt = photoFile.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('report-images')
+      .upload(fileName, photoFile);
+    
+    setUploadingPhoto(false);
+    
+    if (error) {
+      console.error('Upload error:', error);
+      return null;
+    }
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('report-images')
+      .getPublicUrl(data.path);
+    
+    return publicUrl;
   };
 
   const getCurrentLocation = () => {
@@ -132,6 +188,17 @@ const MissingReport = () => {
 
     setLoading(true);
     
+    // Upload photo if no pet photo exists
+    let photoUrl = selectedPetData?.photo_url || null;
+    if (!photoUrl && photoFile) {
+      photoUrl = await uploadPhoto();
+    }
+    
+    // Update pet photo if uploaded
+    if (photoUrl && !selectedPetData?.photo_url) {
+      await supabase.from('pets').update({ photo_url: photoUrl }).eq('id', result.data.petId);
+    }
+    
     const { error } = await supabase.from('missing_reports').insert({
       user_id: user!.id,
       pet_id: result.data.petId,
@@ -180,6 +247,58 @@ const MissingReport = () => {
             </SelectContent>
           </Select>
           {errors.petId && <p className="text-sm text-destructive mt-1">{errors.petId}</p>}
+        </div>
+
+        {/* Pet Photo Preview or Upload */}
+        <div>
+          <label className="aleefna-label">صورة الحيوان</label>
+          {selectedPetData?.photo_url ? (
+            <div className="relative w-full h-40 rounded-lg overflow-hidden bg-secondary">
+              <img 
+                src={selectedPetData.photo_url} 
+                alt={selectedPetData.name} 
+                className="w-full h-full object-cover"
+              />
+              <p className="absolute bottom-2 left-2 right-2 text-xs text-center bg-black/50 text-white py-1 px-2 rounded">
+                ستظهر هذه الصورة في البلاغ
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                ref={fileInputRef}
+                className="hidden"
+              />
+              {photoPreview ? (
+                <div className="relative w-full h-40 rounded-lg overflow-hidden bg-secondary">
+                  <img 
+                    src={photoPreview} 
+                    alt="معاينة" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={removePhoto}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-destructive text-white flex items-center justify-center"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary transition-colors"
+                >
+                  <ImagePlus className="w-8 h-8 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">اضغط لإضافة صورة</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div>
