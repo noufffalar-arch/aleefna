@@ -81,7 +81,16 @@
     "cat": "Cat",
     "dog": "Dog",
     "bird": "Bird",
-    "other": "Other"
+    "other": "Other",
+    "notFound": "Pet Not Found",
+    "notFoundDesc": "We couldn't find this pet",
+    "description": "Description",
+    "missing": "Missing",
+    "forAdoption": "For Adoption",
+    "ownerInfo": "Owner Information",
+    "owner": "Owner",
+    "contactPhone": "Contact Phone",
+    "phoneHidden": "Phone number is hidden"
   },
   "missing": {
     "reportTitle": "Report Missing Pet",
@@ -290,7 +299,8 @@
     "next": "Next",
     "submit": "Submit",
     "viewAll": "View All",
-    "noData": "No data"
+    "noData": "No data",
+    "backToDashboard": "Back to Dashboard"
   },
   "admin": {
     "title": "Admin Dashboard",
