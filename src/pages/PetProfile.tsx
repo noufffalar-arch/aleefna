@@ -79,35 +79,49 @@ const PetProfile = () => {
 
   const fetchPet = async () => {
     setLoading(true);
-    
-    const { data: petData, error: petError } = await supabase
-      .from('pets')
-      .select('*')
-      .eq('id', id)
-      .single();
 
-    if (petError || !petData) {
+    try {
+      const { data: petData, error: petError } = await supabase
+        .from('pets')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (petError) {
+        console.error('Error fetching pet profile:', petError);
+      }
+
+      if (!petData) {
+        console.warn('Pet not found or no access for id:', id);
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      setPet(petData as Pet);
+
+      // Fetch owner info
+      const { data: ownerData, error: ownerError } = await supabase
+        .from('profiles')
+        .select('full_name, phone, email')
+        .eq('user_id', petData.user_id)
+        .maybeSingle();
+
+      if (ownerError) {
+        console.error('Error fetching owner profile:', ownerError);
+      }
+
+      if (ownerData) {
+        setOwner(ownerData as OwnerProfile);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Unexpected error in PetProfile:', error);
       setNotFound(true);
       setLoading(false);
-      return;
     }
-
-    setPet(petData);
-
-    // Fetch owner info
-    const { data: ownerData } = await supabase
-      .from('profiles')
-      .select('full_name, phone, email')
-      .eq('user_id', petData.user_id)
-      .single();
-
-    if (ownerData) {
-      setOwner(ownerData);
-    }
-
-    setLoading(false);
   };
-
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
 
   if (loading) {
