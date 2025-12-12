@@ -10,7 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { AlertTriangle, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface StrayReport {
   id: string;
@@ -99,6 +112,16 @@ const AdminStrayReportsTab = ({ isRtl }: AdminStrayReportsTabProps) => {
     });
   };
 
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('stray_reports').delete().eq('id', id);
+    if (error) {
+      toast.error('حدث خطأ أثناء الحذف');
+    } else {
+      toast.success('تم حذف البلاغ بنجاح');
+      setReports(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -136,6 +159,7 @@ const AdminStrayReportsTab = ({ isRtl }: AdminStrayReportsTabProps) => {
                   <TableHead>{t('admin.reporter')}</TableHead>
                   <TableHead>{t('admin.status')}</TableHead>
                   <TableHead>{t('admin.registrationDate')}</TableHead>
+                  <TableHead>إجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -158,6 +182,27 @@ const AdminStrayReportsTab = ({ isRtl }: AdminStrayReportsTabProps) => {
                       <TableCell>{getReporterName(report.user_id)}</TableCell>
                       <TableCell>{getStatusLabel(report.status)}</TableCell>
                       <TableCell>{formatDate(report.created_at)}</TableCell>
+                      <TableCell>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                              <AlertDialogDescription>هل أنت متأكد من حذف هذا البلاغ؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(report.id)} className="bg-destructive text-destructive-foreground">
+                                حذف
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

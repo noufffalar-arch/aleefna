@@ -10,8 +10,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Phone, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Search, Phone, MapPin, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
 
 interface MissingReport {
   id: string;
@@ -113,6 +126,16 @@ const AdminMissingReportsTab = ({ isRtl }: AdminMissingReportsTabProps) => {
     });
   };
 
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('missing_reports').delete().eq('id', id);
+    if (error) {
+      toast.error('حدث خطأ أثناء الحذف');
+    } else {
+      toast.success('تم حذف البلاغ بنجاح');
+      setReports(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -176,6 +199,7 @@ const AdminMissingReportsTab = ({ isRtl }: AdminMissingReportsTabProps) => {
                   <TableHead>رقم التواصل</TableHead>
                   <TableHead>الحالة</TableHead>
                   <TableHead>التاريخ</TableHead>
+                  <TableHead>إجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -227,6 +251,27 @@ const AdminMissingReportsTab = ({ isRtl }: AdminMissingReportsTabProps) => {
                         </span>
                       </TableCell>
                       <TableCell>{formatDate(report.created_at)}</TableCell>
+                      <TableCell>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                              <AlertDialogDescription>هل أنت متأكد من حذف هذا البلاغ؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(report.id)} className="bg-destructive text-destructive-foreground">
+                                حذف
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

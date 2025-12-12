@@ -2,8 +2,21 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, Search, AlertTriangle, Clock } from 'lucide-react';
+import { Calendar, Search, AlertTriangle, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 import BottomNav from '@/components/BottomNav';
 
 interface Appointment {
@@ -51,6 +64,26 @@ const History = () => {
     if (apptRes.data) setAppointments(apptRes.data);
     if (missingRes.data) setMissingReports(missingRes.data);
     if (strayRes.data) setStrayReports(strayRes.data);
+  };
+
+  const handleDeleteMissingReport = async (id: string) => {
+    const { error } = await supabase.from('missing_reports').delete().eq('id', id);
+    if (error) {
+      toast.error(t('common.error'));
+    } else {
+      toast.success(t('common.deleted'));
+      setMissingReports(prev => prev.filter(r => r.id !== id));
+    }
+  };
+
+  const handleDeleteStrayReport = async (id: string) => {
+    const { error } = await supabase.from('stray_reports').delete().eq('id', id);
+    if (error) {
+      toast.error(t('common.error'));
+    } else {
+      toast.success(t('common.deleted'));
+      setStrayReports(prev => prev.filter(r => r.id !== id));
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -103,6 +136,25 @@ const History = () => {
             ) : (
               missingReports.map((report) => (
                 <div key={report.id} className="aleefna-card flex items-center gap-4">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('common.deleteWarning')}</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteMissingReport(report.id)} className="bg-destructive text-destructive-foreground">
+                          {t('common.delete')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   <div className="flex-1 text-end">
                     <p className="font-medium text-foreground">{report.last_seen_location}</p>
                     <p className="text-sm text-muted-foreground">{new Date(report.created_at).toLocaleDateString('ar-SA')}</p>
@@ -122,6 +174,25 @@ const History = () => {
             ) : (
               strayReports.map((report) => (
                 <div key={report.id} className="aleefna-card flex items-center gap-4">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('common.deleteWarning')}</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteStrayReport(report.id)} className="bg-destructive text-destructive-foreground">
+                          {t('common.delete')}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   <div className="flex-1 text-end">
                     <p className="font-medium text-foreground">{report.animal_type} - {report.location_text}</p>
                     <p className="text-sm text-muted-foreground">{new Date(report.created_at).toLocaleDateString('ar-SA')}</p>
