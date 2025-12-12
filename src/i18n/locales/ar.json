@@ -81,7 +81,16 @@
     "cat": "قط",
     "dog": "كلب",
     "bird": "طائر",
-    "other": "آخر"
+    "other": "آخر",
+    "notFound": "الحيوان غير موجود",
+    "notFoundDesc": "لم نتمكن من العثور على هذا الحيوان الأليف",
+    "description": "الوصف",
+    "missing": "مفقود",
+    "forAdoption": "متاح للتبني",
+    "ownerInfo": "معلومات المالك",
+    "owner": "المالك",
+    "contactPhone": "رقم التواصل",
+    "phoneHidden": "رقم الهاتف مخفي"
   },
   "missing": {
     "reportTitle": "بلاغ فقدان حيوان",
@@ -290,7 +299,8 @@
     "next": "التالي",
     "submit": "إرسال",
     "viewAll": "عرض الكل",
-    "noData": "لا توجد بيانات"
+    "noData": "لا توجد بيانات",
+    "backToDashboard": "العودة للرئيسية"
   },
   "admin": {
     "title": "لوحة تحكم المسؤول",

@@ -26,6 +26,7 @@ import BookAppointment from "./pages/BookAppointment";
 import AddPet from "./pages/AddPet";
 import Adoption from "./pages/Adoption";
 import Care from "./pages/Care";
+import PetProfile from "./pages/PetProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/add-pet" element={<AddPet />} />
             <Route path="/adoption" element={<Adoption />} />
             <Route path="/care" element={<Care />} />
+            <Route path="/pet/:id" element={<PetProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
