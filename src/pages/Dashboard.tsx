@@ -194,6 +194,20 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
+              
+              {/* Add Another Pet Button */}
+              <div 
+                className="aleefna-card-hover cursor-pointer flex items-center gap-4 border-dashed border-2 border-primary/30"
+                onClick={() => navigate('/add-pet')}
+              >
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <PawPrint className="w-7 h-7 text-primary" />
+                </div>
+                <div className="flex-1 text-start">
+                  <p className="font-medium text-primary">{t('pet.addAnotherPet')}</p>
+                  <p className="text-muted-foreground text-xs">{t('dashboard.addPetHint')}</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
