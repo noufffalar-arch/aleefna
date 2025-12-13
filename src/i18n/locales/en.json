@@ -91,7 +91,8 @@
     "owner": "Owner",
     "contactPhone": "Contact Phone",
     "phoneHidden": "Phone number is hidden",
-    "addAnotherPet": "Add Another Pet"
+    "addAnotherPet": "Add Another Pet",
+    "tapToAddPhoto": "Tap to add photo"
   },
   "missing": {
     "reportTitle": "Report Missing Pet",
@@ -301,7 +302,9 @@
     "submit": "Submit",
     "viewAll": "View All",
     "noData": "No data",
-    "backToDashboard": "Back to Dashboard"
+    "backToDashboard": "Back to Dashboard",
+    "invalidFileType": "Invalid file type",
+    "fileTooLarge": "File too large (max 5MB)"
   },
   "admin": {
     "title": "Admin Dashboard",
