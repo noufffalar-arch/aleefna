@@ -90,7 +90,8 @@
     "ownerInfo": "معلومات المالك",
     "owner": "المالك",
     "contactPhone": "رقم التواصل",
-    "phoneHidden": "رقم الهاتف مخفي"
+    "phoneHidden": "رقم الهاتف مخفي",
+    "addAnotherPet": "إضافة حيوان آخر"
   },
   "missing": {
     "reportTitle": "بلاغ فقدان حيوان",

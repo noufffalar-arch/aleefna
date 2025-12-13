@@ -90,7 +90,8 @@
     "ownerInfo": "Owner Information",
     "owner": "Owner",
     "contactPhone": "Contact Phone",
-    "phoneHidden": "Phone number is hidden"
+    "phoneHidden": "Phone number is hidden",
+    "addAnotherPet": "Add Another Pet"
   },
   "missing": {
     "reportTitle": "Report Missing Pet",
