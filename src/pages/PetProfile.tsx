@@ -10,13 +10,11 @@ import {
   ArrowRight, 
   PawPrint, 
   Phone, 
-  Edit, 
   Calendar,
   Syringe,
   AlertCircle,
   User,
   Lock,
-  X,
   ZoomIn,
   Camera,
   Loader2
@@ -24,8 +22,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import BottomNav from '@/components/BottomNav';
+import ImageModal from '@/components/ImageModal';
 import { toast } from 'sonner';
 
 interface Pet {
@@ -439,23 +437,12 @@ const PetProfile = () => {
       <BottomNav />
 
       {/* Image Modal */}
-      <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95">
-          <button 
-            onClick={() => setImageModalOpen(false)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center z-10 transition-colors"
-          >
-            <X className="w-6 h-6 text-white" />
-          </button>
-          {pet?.photo_url && (
-            <img
-              src={pet.photo_url}
-              alt={pet.name}
-              className="w-full h-full object-contain max-h-[90vh]"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <ImageModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        imageUrl={pet?.photo_url || null}
+        alt={pet?.name}
+      />
     </div>
   );
 };

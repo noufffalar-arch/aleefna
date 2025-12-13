@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCanViewPhone } from '@/hooks/useCanViewPhone';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import ImageModal from '@/components/ImageModal';
 
 // Notification sound utility
 const playNotificationSound = () => {
@@ -1234,23 +1235,12 @@ const ReportsMap = () => {
       </Dialog>
 
       {/* Image Modal */}
-      <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95" dir="rtl">
-          <button 
-            onClick={() => setImageModalOpen(false)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center z-10 transition-colors"
-          >
-            <X className="w-6 h-6 text-white" />
-          </button>
-          {imageModalUrl && (
-            <img
-              src={imageModalUrl}
-              alt="صورة الحيوان"
-              className="w-full h-full object-contain max-h-[90vh]"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <ImageModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        imageUrl={imageModalUrl}
+        alt="صورة الحيوان"
+      />
     </div>
   );
 };
