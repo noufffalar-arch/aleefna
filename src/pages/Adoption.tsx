@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
-import { Heart, MapPin } from 'lucide-react';
+import { Heart, MapPin, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import ImageModal from '@/components/ImageModal';
 
 interface AdoptionPet {
   id: string;
@@ -28,6 +29,8 @@ const Adoption = () => {
   const { user, isGuest, exitGuestMode } = useAuth();
   const [pets, setPets] = useState<AdoptionPet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [imageModalUrl, setImageModalUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAdoptionPets();
@@ -83,9 +86,22 @@ const Adoption = () => {
             {pets.map((pet) => (
               <div key={pet.id} className="aleefna-card">
                 <div className="flex gap-4">
-                  <div className="w-24 h-24 rounded-xl bg-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div 
+                    className={`w-24 h-24 rounded-xl bg-secondary flex items-center justify-center overflow-hidden flex-shrink-0 ${pet.photo_url ? 'cursor-pointer relative group' : ''}`}
+                    onClick={() => {
+                      if (pet.photo_url) {
+                        setImageModalUrl(pet.photo_url);
+                        setImageModalOpen(true);
+                      }
+                    }}
+                  >
                     {pet.photo_url ? (
-                      <img src={pet.photo_url} alt={pet.name} className="w-full h-full object-cover" />
+                      <>
+                        <img src={pet.photo_url} alt={pet.name} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-xl flex items-center justify-center">
+                          <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </>
                     ) : (
                       <Heart className="w-8 h-8 text-primary" />
                     )}
@@ -126,6 +142,14 @@ const Adoption = () => {
       </div>
 
       <BottomNav />
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        imageUrl={imageModalUrl}
+        alt="صورة الحيوان"
+      />
     </div>
   );
 };

@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { supabase } from '@/integrations/supabase/client';
-import { PawPrint, Search, MapPin, Calendar, Heart, Scissors, AlertTriangle, User, Eye, AlertCircle, Syringe, LogIn } from 'lucide-react';
+import { PawPrint, Search, MapPin, Calendar, Heart, Scissors, AlertTriangle, User, Eye, AlertCircle, Syringe, LogIn, ZoomIn } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import ImageModal from '@/components/ImageModal';
 import useRTL from '@/hooks/useRTL';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -24,6 +25,8 @@ const Dashboard = () => {
   const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [pets, setPets] = useState<Pet[]>([]);
   const { isRtl, dir } = useRTL();
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [imageModalUrl, setImageModalUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user && !isGuest) {
@@ -156,9 +159,23 @@ const Dashboard = () => {
                   onClick={() => navigate(`/pet/${pet.id}`)}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden">
+                    <div 
+                      className={`w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden ${pet.photo_url ? 'cursor-pointer relative group' : ''}`}
+                      onClick={(e) => {
+                        if (pet.photo_url) {
+                          e.stopPropagation();
+                          setImageModalUrl(pet.photo_url);
+                          setImageModalOpen(true);
+                        }
+                      }}
+                    >
                       {pet.photo_url ? (
-                        <img src={pet.photo_url} alt={pet.name} className="w-full h-full object-cover" />
+                        <>
+                          <img src={pet.photo_url} alt={pet.name} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-2xl flex items-center justify-center">
+                            <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </>
                       ) : (
                         <PawPrint className="w-7 h-7 text-primary" />
                       )}
@@ -287,6 +304,14 @@ const Dashboard = () => {
       </div>
 
       <BottomNav />
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        imageUrl={imageModalUrl}
+        alt="صورة الحيوان"
+      />
     </div>
   );
 };
