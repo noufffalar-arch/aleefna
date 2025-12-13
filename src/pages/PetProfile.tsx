@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,13 +17,16 @@ import {
   User,
   Lock,
   X,
-  ZoomIn
+  ZoomIn,
+  Camera,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import BottomNav from '@/components/BottomNav';
+import { toast } from 'sonner';
 
 interface Pet {
   id: string;
@@ -65,6 +68,8 @@ const PetProfile = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isOwner = user?.id === pet?.user_id;
   
@@ -122,6 +127,60 @@ const PetProfile = () => {
       setLoading(false);
     }
   };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pet || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error(t('common.invalidFileType'));
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t('common.fileTooLarge'));
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${pet.id}-${Date.now()}.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('report-images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('report-images')
+        .getPublicUrl(fileName);
+
+      // Update pet record
+      const { error: updateError } = await supabase
+        .from('pets')
+        .update({ photo_url: publicUrl })
+        .eq('id', pet.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setPet({ ...pet, photo_url: publicUrl });
+      toast.success(t('common.success'));
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      toast.error(t('common.error'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
 
   if (loading) {
@@ -163,6 +222,15 @@ const PetProfile = () => {
     <div className="min-h-screen bg-background pb-24" dir={dir}>
       {/* Header */}
       <div className="relative">
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoUpload}
+          className="hidden"
+        />
+        
         {/* Pet Image - Clickable */}
         <div 
           className="h-64 bg-secondary relative cursor-pointer group"
@@ -180,8 +248,11 @@ const PetProfile = () => {
               </div>
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center flex-col gap-2">
               <PawPrint className="w-20 h-20 text-muted-foreground" />
+              {isOwner && (
+                <p className="text-muted-foreground text-sm">{t('pet.tapToAddPhoto')}</p>
+              )}
             </div>
           )}
         </div>
@@ -194,13 +265,18 @@ const PetProfile = () => {
           <BackArrow className="w-5 h-5 text-foreground" />
         </button>
 
-        {/* Edit Button (for owner only) */}
+        {/* Change Photo Button (for owner only) */}
         {isOwner && (
           <button 
-            onClick={() => navigate(`/add-pet?edit=${pet.id}`)} 
+            onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+            disabled={uploading}
             className="absolute top-6 right-6 w-10 h-10 rounded-full bg-background/80 backdrop-blur flex items-center justify-center"
           >
-            <Edit className="w-5 h-5 text-foreground" />
+            {uploading ? (
+              <Loader2 className="w-5 h-5 text-foreground animate-spin" />
+            ) : (
+              <Camera className="w-5 h-5 text-foreground" />
+            )}
           </button>
         )}
       </div>

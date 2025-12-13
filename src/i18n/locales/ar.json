@@ -91,7 +91,8 @@
     "owner": "المالك",
     "contactPhone": "رقم التواصل",
     "phoneHidden": "رقم الهاتف مخفي",
-    "addAnotherPet": "إضافة حيوان آخر"
+    "addAnotherPet": "إضافة حيوان آخر",
+    "tapToAddPhoto": "اضغط لإضافة صورة"
   },
   "missing": {
     "reportTitle": "بلاغ فقدان حيوان",
@@ -301,7 +302,9 @@
     "submit": "إرسال",
     "viewAll": "عرض الكل",
     "noData": "لا توجد بيانات",
-    "backToDashboard": "العودة للرئيسية"
+    "backToDashboard": "العودة للرئيسية",
+    "invalidFileType": "نوع الملف غير مدعوم",
+    "fileTooLarge": "حجم الملف كبير جداً (الحد الأقصى 5 ميجابايت)"
   },
   "admin": {
     "title": "لوحة تحكم المسؤول",
